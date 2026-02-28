@@ -1,0 +1,255 @@
+@custom-variant dark (&:is(.dark *));
+
+:root {
+  --font-size: 16px;
+  
+  /* Airbnb-inspired Modern Colors */
+  --background: #ffffff;
+  --foreground: #222222;
+  
+  /* Brand Colors */
+  --brand-primary: #FF385C;
+  --brand-primary-hover: #E31C5F;
+  --brand-secondary: #00A699;
+  --brand-accent: #FC642D;
+  
+  /* Semantic Colors */
+  --success: #008A05;
+  --warning: #FFC043;
+  --error: #C13515;
+  --info: #0074E4;
+  
+  /* Neutral Palette */
+  --gray-50: #F7F7F7;
+  --gray-100: #F0F0F0;
+  --gray-200: #DDDDDD;
+  --gray-300: #B0B0B0;
+  --gray-400: #717171;
+  --gray-500: #484848;
+  --gray-600: #222222;
+  
+  /* UI Elements */
+  --card: #ffffff;
+  --card-foreground: #222222;
+  --popover: #ffffff;
+  --popover-foreground: #222222;
+  --primary: #FF385C;
+  --primary-foreground: #ffffff;
+  --secondary: #F7F7F7;
+  --secondary-foreground: #222222;
+  --muted: #F7F7F7;
+  --muted-foreground: #717171;
+  --accent: #FC642D;
+  --accent-foreground: #ffffff;
+  --destructive: #C13515;
+  --destructive-foreground: #ffffff;
+  --border: #DDDDDD;
+  --input: transparent;
+  --input-background: #ffffff;
+  --switch-background: #B0B0B0;
+  --ring: #FF385C;
+  
+  /* Modern Shadows */
+  --shadow-sm: 0 1px 2px rgba(0,0,0,0.08);
+  --shadow-md: 0 2px 8px rgba(0,0,0,0.12);
+  --shadow-lg: 0 4px 16px rgba(0,0,0,0.15);
+  --shadow-xl: 0 8px 24px rgba(0,0,0,0.18);
+  
+  /* Border Radius */
+  --radius: 12px;
+  --radius-sm: 8px;
+  --radius-lg: 16px;
+  --radius-xl: 24px;
+  --radius-full: 9999px;
+  
+  /* Font Weights */
+  --font-weight-normal: 400;
+  --font-weight-medium: 500;
+  --font-weight-semibold: 600;
+  --font-weight-bold: 700;
+  
+  /* Charts */
+  --chart-1: #FF385C;
+  --chart-2: #00A699;
+  --chart-3: #FC642D;
+  --chart-4: #FFC043;
+  --chart-5: #0074E4;
+  
+  /* Sidebar */
+  --sidebar: #ffffff;
+  --sidebar-foreground: #222222;
+  --sidebar-primary: #FF385C;
+  --sidebar-primary-foreground: #ffffff;
+  --sidebar-accent: #F7F7F7;
+  --sidebar-accent-foreground: #222222;
+  --sidebar-border: #DDDDDD;
+  --sidebar-ring: #FF385C;
+}
+
+.dark {
+  --background: #0A0A0A;
+  --foreground: #F7F7F7;
+  
+  /* Brand Colors - adjusted for dark mode */
+  --brand-primary: #FF385C;
+  --brand-primary-hover: #FF5A7A;
+  --brand-secondary: #00A699;
+  --brand-accent: #FC642D;
+  
+  /* Semantic Colors - dark mode variants */
+  --success: #00C110;
+  --warning: #FFD04A;
+  --error: #FF5A5F;
+  --info: #1A8FFF;
+  
+  /* Neutral Palette - inverted */
+  --gray-50: #0A0A0A;
+  --gray-100: #1A1A1A;
+  --gray-200: #2A2A2A;
+  --gray-300: #3A3A3A;
+  --gray-400: #B0B0B0;
+  --gray-500: #DDDDDD;
+  --gray-600: #F7F7F7;
+  
+  /* UI Elements */
+  --card: #1A1A1A;
+  --card-foreground: #F7F7F7;
+  --popover: #1A1A1A;
+  --popover-foreground: #F7F7F7;
+  --primary: #FF385C;
+  --primary-foreground: #ffffff;
+  --secondary: #2A2A2A;
+  --secondary-foreground: #F7F7F7;
+  --muted: #2A2A2A;
+  --muted-foreground: #B0B0B0;
+  --accent: #FC642D;
+  --accent-foreground: #ffffff;
+  --destructive: #FF5A5F;
+  --destructive-foreground: #ffffff;
+  --border: #2A2A2A;
+  --input: transparent;
+  --input-background: #1A1A1A;
+  --switch-background: #3A3A3A;
+  --ring: #FF385C;
+  
+  /* Modern Shadows - enhanced for dark mode */
+  --shadow-sm: 0 1px 2px rgba(0,0,0,0.3);
+  --shadow-md: 0 2px 8px rgba(0,0,0,0.4);
+  --shadow-lg: 0 4px 16px rgba(0,0,0,0.5);
+  --shadow-xl: 0 8px 24px rgba(0,0,0,0.6);
+  
+  /* Charts - dark mode variants */
+  --chart-1: #FF5A7A;
+  --chart-2: #00C9B8;
+  --chart-3: #FF7A4D;
+  --chart-4: #FFD04A;
+  --chart-5: #4DA3FF;
+  
+  /* Sidebar */
+  --sidebar: #1A1A1A;
+  --sidebar-foreground: #F7F7F7;
+  --sidebar-primary: #FF385C;
+  --sidebar-primary-foreground: #ffffff;
+  --sidebar-accent: #2A2A2A;
+  --sidebar-accent-foreground: #F7F7F7;
+  --sidebar-border: #2A2A2A;
+  --sidebar-ring: #FF385C;
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-input-background: var(--input-background);
+  --color-switch-background: var(--switch-background);
+  --color-ring: var(--ring);
+  --color-chart-1: var(--chart-1);
+  --color-chart-2: var(--chart-2);
+  --color-chart-3: var(--chart-3);
+  --color-chart-4: var(--chart-4);
+  --color-chart-5: var(--chart-5);
+  --color-sidebar: var(--sidebar);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-ring: var(--sidebar-ring);
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+
+  body {
+    @apply bg-background text-foreground;
+  }
+
+  /**
+  * Default typography styles for HTML elements (h1-h4, p, label, button, input).
+  * These are in @layer base, so Tailwind utility classes (like text-sm, text-lg) automatically override them.
+  */
+
+  html {
+    font-size: var(--font-size);
+  }
+
+  h1 {
+    font-size: var(--text-2xl);
+    font-weight: var(--font-weight-medium);
+    line-height: 1.5;
+  }
+
+  h2 {
+    font-size: var(--text-xl);
+    font-weight: var(--font-weight-medium);
+    line-height: 1.5;
+  }
+
+  h3 {
+    font-size: var(--text-lg);
+    font-weight: var(--font-weight-medium);
+    line-height: 1.5;
+  }
+
+  h4 {
+    font-size: var(--text-base);
+    font-weight: var(--font-weight-medium);
+    line-height: 1.5;
+  }
+
+  label {
+    font-size: var(--text-base);
+    font-weight: var(--font-weight-medium);
+    line-height: 1.5;
+  }
+
+  button {
+    font-size: var(--text-base);
+    font-weight: var(--font-weight-medium);
+    line-height: 1.5;
+  }
+
+  input {
+    font-size: var(--text-base);
+    font-weight: var(--font-weight-normal);
+    line-height: 1.5;
+  }
+}
