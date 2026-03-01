@@ -16,10 +16,18 @@ import '../../ui/settings/settings_screen.dart';
 
 // Navigator keys
 final _rootNavigatorKey = GlobalKey<NavigatorState>(debugLabel: 'root');
-final _shellNavigatorHomeKey = GlobalKey<NavigatorState>(debugLabel: 'shellHome');
-final _shellNavigatorSalesKey = GlobalKey<NavigatorState>(debugLabel: 'shellSales');
-final _shellNavigatorPurchasesKey = GlobalKey<NavigatorState>(debugLabel: 'shellPurchases');
-final _shellNavigatorSettingsKey = GlobalKey<NavigatorState>(debugLabel: 'shellSettings');
+final _shellNavigatorHomeKey = GlobalKey<NavigatorState>(
+  debugLabel: 'shellHome',
+);
+final _shellNavigatorSalesKey = GlobalKey<NavigatorState>(
+  debugLabel: 'shellSales',
+);
+final _shellNavigatorPurchasesKey = GlobalKey<NavigatorState>(
+  debugLabel: 'shellPurchases',
+);
+final _shellNavigatorSettingsKey = GlobalKey<NavigatorState>(
+  debugLabel: 'shellSettings',
+);
 
 final routerProvider = Provider<GoRouter>((ref) {
   final authState = ref.watch(authStateProvider);
@@ -46,14 +54,8 @@ final routerProvider = Provider<GoRouter>((ref) {
       return null;
     },
     routes: [
-      GoRoute(
-        path: '/',
-        builder: (context, state) => const SplashScreen(),
-      ),
-      GoRoute(
-        path: '/login',
-        builder: (context, state) => const LoginScreen(),
-      ),
+      GoRoute(path: '/', builder: (context, state) => const SplashScreen()),
+      GoRoute(path: '/login', builder: (context, state) => const LoginScreen()),
       GoRoute(
         path: '/register',
         builder: (context, state) => const RegisterScreen(),

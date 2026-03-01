@@ -39,12 +39,13 @@ class Payment {
   final String paymentType; // "receipt" or "payment"
   final DateTime paymentDate;
   final double totalAmount;
-  final String paymentMethod; // "cash", "bank_transfer", "upi", "cheque", "card", "other"
+  final String
+  paymentMethod; // "cash", "bank_transfer", "upi", "cheque", "card", "other"
   final String? referenceNumber;
   final String? notes;
   final DateTime createdAt;
   final DateTime updatedAt;
-  
+
   // Allocations (loaded separately via subcollection usually, but kept here for convenience if needed)
   final List<PaymentAllocation>? allocations;
 
@@ -70,7 +71,8 @@ class Payment {
       partyId: (data['partyId'] ?? '').toString(),
       partyName: (data['partyName'] ?? '').toString(),
       paymentType: data['paymentType'] ?? '',
-      paymentDate: (data['paymentDate'] as Timestamp?)?.toDate() ?? DateTime.now(),
+      paymentDate:
+          (data['paymentDate'] as Timestamp?)?.toDate() ?? DateTime.now(),
       totalAmount: (data['totalAmount'] ?? 0).toDouble(),
       paymentMethod: (data['paymentMethod'] ?? 'cash').toString(),
       referenceNumber: data['referenceNumber']?.toString(),

@@ -45,7 +45,8 @@ class Invoice {
       invoiceType: (data['invoiceType'] ?? '').toString(),
       invoiceNumber: (data['invoiceNumber'] ?? '').toString(),
       docType: (data['docType'] ?? 'Invoice/Bill').toString(),
-      invoiceDate: (data['invoiceDate'] as Timestamp?)?.toDate() ?? DateTime.now(),
+      invoiceDate:
+          (data['invoiceDate'] as Timestamp?)?.toDate() ?? DateTime.now(),
       totalAmount: (data['totalAmount'] ?? 0).toDouble(),
       paidAmount: (data['paidAmount'] ?? 0).toDouble(),
       outstandingAmount: (data['outstandingAmount'] ?? 0).toDouble(),

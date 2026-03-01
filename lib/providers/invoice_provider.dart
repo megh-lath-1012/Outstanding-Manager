@@ -25,44 +25,54 @@ class InvoiceQuery {
       other.searchTerm == searchTerm;
 
   @override
-  int get hashCode => Object.hash(invoiceType, partyId, paymentStatus, searchTerm);
+  int get hashCode =>
+      Object.hash(invoiceType, partyId, paymentStatus, searchTerm);
 }
 
 /// Streams all invoices matching the query, sorted oldest first
-final invoicesProvider = StreamProvider.family<List<Invoice>, InvoiceQuery>((ref, query) {
+final invoicesProvider = StreamProvider.family<List<Invoice>, InvoiceQuery>((
+  ref,
+  query,
+) {
   final userDoc = ref.watch(userDocProvider);
   if (userDoc == null) return Stream.value([]);
 
   Query<Map<String, dynamic>> firestoreQuery = userDoc
-    .collection('invoices')
-    .where('invoiceType', isEqualTo: query.invoiceType);
+      .collection('invoices')
+      .where('invoiceType', isEqualTo: query.invoiceType);
 
   if (query.partyId != null) {
     firestoreQuery = firestoreQuery.where('partyId', isEqualTo: query.partyId);
   }
 
   if (query.paymentStatus != null) {
-    firestoreQuery = firestoreQuery.where('paymentStatus', isEqualTo: query.paymentStatus);
+    firestoreQuery = firestoreQuery.where(
+      'paymentStatus',
+      isEqualTo: query.paymentStatus,
+    );
   }
 
-  return firestoreQuery
-    .snapshots()
-    .map((snapshot) {
-      var invoices = snapshot.docs.map((doc) => Invoice.fromFirestore(doc)).toList();
-      // Sort oldest first (ascending date)
-      invoices.sort((a, b) => a.invoiceDate.compareTo(b.invoiceDate));
+  return firestoreQuery.snapshots().map((snapshot) {
+    var invoices = snapshot.docs
+        .map((doc) => Invoice.fromFirestore(doc))
+        .toList();
+    // Sort oldest first (ascending date)
+    invoices.sort((a, b) => a.invoiceDate.compareTo(b.invoiceDate));
 
-      // Client-side search filter (party name or invoice number)
-      if (query.searchTerm != null && query.searchTerm!.isNotEmpty) {
-        final term = query.searchTerm!.toLowerCase();
-        invoices = invoices.where((inv) =>
-          inv.partyName.toLowerCase().contains(term) ||
-          inv.invoiceNumber.toLowerCase().contains(term)
-        ).toList();
-      }
+    // Client-side search filter (party name or invoice number)
+    if (query.searchTerm != null && query.searchTerm!.isNotEmpty) {
+      final term = query.searchTerm!.toLowerCase();
+      invoices = invoices
+          .where(
+            (inv) =>
+                inv.partyName.toLowerCase().contains(term) ||
+                inv.invoiceNumber.toLowerCase().contains(term),
+          )
+          .toList();
+    }
 
-      return invoices;
-    });
+    return invoices;
+  });
 });
 
 final invoiceRepositoryProvider = Provider<InvoiceRepository>((ref) {
@@ -86,11 +96,16 @@ class InvoiceRepository {
   }
 
   /// Update invoice payment status after a payment allocation
-  Future<void> updateInvoiceStatus(String invoiceId, double additionalPayment) async {
+  Future<void> updateInvoiceStatus(
+    String invoiceId,
+    double additionalPayment,
+  ) async {
     final userDoc = _userDoc;
     if (userDoc == null) throw Exception('Not authenticated');
 
-    await _ref.read(firebaseFirestoreProvider).runTransaction((transaction) async {
+    await _ref.read(firebaseFirestoreProvider).runTransaction((
+      transaction,
+    ) async {
       final docRef = userDoc.collection('invoices').doc(invoiceId);
       final snapshot = await transaction.get(docRef);
       if (!snapshot.exists) throw Exception("Invoice does not exist!");

@@ -8,7 +8,7 @@ import 'ui/profile/appearance_screen.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  
+
   try {
     await Firebase.initializeApp(
       options: DefaultFirebaseOptions.currentPlatform,
@@ -17,11 +17,7 @@ void main() async {
     debugPrint("Firebase initialization failed: $e");
   }
 
-  runApp(
-    const ProviderScope(
-      child: OutstandingApp(),
-    ),
-  );
+  runApp(const ProviderScope(child: OutstandingApp()));
 }
 
 class OutstandingApp extends ConsumerWidget {

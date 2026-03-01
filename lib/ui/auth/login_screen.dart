@@ -26,21 +26,26 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
 
   Future<void> _login() async {
     if (!_formKey.currentState!.validate()) return;
-    
+
     setState(() => _isLoading = true);
-    
+
     try {
-      await ref.read(authRepositoryProvider).signInWithEmailPassword(
-        _emailController.text.trim(),
-        _passwordController.text,
-      );
+      await ref
+          .read(authRepositoryProvider)
+          .signInWithEmailPassword(
+            _emailController.text.trim(),
+            _passwordController.text,
+          );
       if (mounted) {
         context.go('/dashboard');
       }
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(e.toString()), backgroundColor: Theme.of(context).colorScheme.error),
+          SnackBar(
+            content: Text(e.toString()),
+            backgroundColor: Theme.of(context).colorScheme.error,
+          ),
         );
       }
     } finally {
@@ -81,7 +86,9 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                     'Sign in to sync your outstandings.',
                     textAlign: TextAlign.center,
                     style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                      color: Theme.of(context).colorScheme.onSurface.withOpacity(0.6),
+                      color: Theme.of(
+                        context,
+                      ).colorScheme.onSurface.withOpacity(0.6),
                     ),
                   ),
                   const SizedBox(height: 32),
@@ -93,7 +100,8 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                       prefixIcon: Icon(Icons.email_outlined),
                     ),
                     validator: (value) {
-                      if (value == null || value.isEmpty) return 'Enter your email';
+                      if (value == null || value.isEmpty)
+                        return 'Enter your email';
                       if (!value.contains('@')) return 'Enter a valid email';
                       return null;
                     },
@@ -106,14 +114,19 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                       labelText: 'Password',
                       prefixIcon: const Icon(Icons.lock_outline),
                       suffixIcon: IconButton(
-                        icon: Icon(_obscurePassword ? Icons.visibility_off : Icons.visibility),
+                        icon: Icon(
+                          _obscurePassword
+                              ? Icons.visibility_off
+                              : Icons.visibility,
+                        ),
                         onPressed: () {
                           setState(() => _obscurePassword = !_obscurePassword);
                         },
                       ),
                     ),
                     validator: (value) {
-                      if (value == null || value.isEmpty) return 'Enter your password';
+                      if (value == null || value.isEmpty)
+                        return 'Enter your password';
                       return null;
                     },
                   ),
@@ -129,8 +142,15 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                   const SizedBox(height: 24),
                   ElevatedButton(
                     onPressed: _isLoading ? null : _login,
-                    child: _isLoading 
-                        ? const SizedBox(height: 20, width: 20, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
+                    child: _isLoading
+                        ? const SizedBox(
+                            height: 20,
+                            width: 20,
+                            child: CircularProgressIndicator(
+                              strokeWidth: 2,
+                              color: Colors.white,
+                            ),
+                          )
                         : const Text('Login'),
                   ),
                   const SizedBox(height: 16),

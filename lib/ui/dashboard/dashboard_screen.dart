@@ -14,12 +14,13 @@ class DashboardScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final metricsAsync = ref.watch(dashboardMetricsProvider);
     final recentAsync = ref.watch(recentActivityProvider);
-    final currencyFormat = NumberFormat.currency(locale: 'en_IN', symbol: '\u20b9');
+    final currencyFormat = NumberFormat.currency(
+      locale: 'en_IN',
+      symbol: '\u20b9',
+    );
 
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Dashboard'),
-      ),
+      appBar: AppBar(title: const Text('Dashboard')),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16),
         child: Column(
@@ -27,14 +28,20 @@ class DashboardScreen extends ConsumerWidget {
           children: [
             // Metrics cards
             metricsAsync.when(
-              data: (metrics) => _buildMetrics(context, metrics, currencyFormat),
+              data: (metrics) =>
+                  _buildMetrics(context, metrics, currencyFormat),
               loading: () => const Center(child: CircularProgressIndicator()),
               error: (e, s) => Text('Error: $e'),
             ),
             const SizedBox(height: 24),
 
             // Recent Activity
-            Text('Recent Activity', style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold)),
+            Text(
+              'Recent Activity',
+              style: Theme.of(
+                context,
+              ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
+            ),
             const SizedBox(height: 12),
             recentAsync.when(
               data: (activities) {
@@ -42,11 +49,22 @@ class DashboardScreen extends ConsumerWidget {
                   return Container(
                     padding: const EdgeInsets.all(32),
                     alignment: Alignment.center,
-                    child: Text('No activity yet', style: TextStyle(color: Colors.grey.shade500)),
+                    child: Text(
+                      'No activity yet',
+                      style: TextStyle(color: Colors.grey.shade500),
+                    ),
                   );
                 }
                 return Column(
-                  children: activities.map((activity) => _buildActivityTile(context, activity, currencyFormat)).toList(),
+                  children: activities
+                      .map(
+                        (activity) => _buildActivityTile(
+                          context,
+                          activity,
+                          currencyFormat,
+                        ),
+                      )
+                      .toList(),
                 );
               },
               loading: () => const Center(child: CircularProgressIndicator()),
@@ -58,18 +76,26 @@ class DashboardScreen extends ConsumerWidget {
     );
   }
 
-  Widget _buildMetrics(BuildContext context, DashboardMetrics m, NumberFormat fmt) {
+  Widget _buildMetrics(
+    BuildContext context,
+    DashboardMetrics m,
+    NumberFormat fmt,
+  ) {
     return Column(
       children: [
         // Top row: Net Outstanding
         Card(
-          color: m.netOutstanding >= 0 ? Colors.green.shade50 : Colors.red.shade50,
+          color: m.netOutstanding >= 0
+              ? Colors.green.shade50
+              : Colors.red.shade50,
           child: Padding(
             padding: const EdgeInsets.all(20),
             child: Row(
               children: [
                 Icon(
-                  m.netOutstanding >= 0 ? Icons.trending_up : Icons.trending_down,
+                  m.netOutstanding >= 0
+                      ? Icons.trending_up
+                      : Icons.trending_down,
                   color: m.netOutstanding >= 0 ? Colors.green : Colors.red,
                   size: 36,
                 ),
@@ -78,19 +104,32 @@ class DashboardScreen extends ConsumerWidget {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text('Net Outstanding', style: TextStyle(color: Colors.grey.shade700, fontSize: 13)),
+                      Text(
+                        'Net Outstanding',
+                        style: TextStyle(
+                          color: Colors.grey.shade700,
+                          fontSize: 13,
+                        ),
+                      ),
                       const SizedBox(height: 4),
                       Text(
                         fmt.format(m.netOutstanding),
                         style: TextStyle(
                           fontSize: 28,
                           fontWeight: FontWeight.bold,
-                          color: m.netOutstanding >= 0 ? Colors.green.shade700 : Colors.red.shade700,
+                          color: m.netOutstanding >= 0
+                              ? Colors.green.shade700
+                              : Colors.red.shade700,
                         ),
                       ),
                       Text(
-                        m.netOutstanding >= 0 ? 'You will receive this' : 'You owe this',
-                        style: TextStyle(fontSize: 12, color: Colors.grey.shade600),
+                        m.netOutstanding >= 0
+                            ? 'You will receive this'
+                            : 'You owe this',
+                        style: TextStyle(
+                          fontSize: 12,
+                          color: Colors.grey.shade600,
+                        ),
                       ),
                     ],
                   ),
@@ -104,16 +143,41 @@ class DashboardScreen extends ConsumerWidget {
         // Sales vs Purchases row
         Row(
           children: [
-            Expanded(child: _metricCard(context, 'Sales Outstanding', fmt.format(m.salesOutstanding), Icons.arrow_downward, Colors.green, () => context.go('/sales'))),
+            Expanded(
+              child: _metricCard(
+                context,
+                'Sales Outstanding',
+                fmt.format(m.salesOutstanding),
+                Icons.arrow_downward,
+                Colors.green,
+                () => context.go('/sales'),
+              ),
+            ),
             const SizedBox(width: 12),
-            Expanded(child: _metricCard(context, 'Purchase Outstanding', fmt.format(m.purchaseOutstanding), Icons.arrow_upward, Colors.red, () => context.go('/purchases'))),
+            Expanded(
+              child: _metricCard(
+                context,
+                'Purchase Outstanding',
+                fmt.format(m.purchaseOutstanding),
+                Icons.arrow_upward,
+                Colors.red,
+                () => context.go('/purchases'),
+              ),
+            ),
           ],
         ),
       ],
     );
   }
 
-  Widget _metricCard(BuildContext context, String label, String value, IconData icon, Color color, VoidCallback onTap) {
+  Widget _metricCard(
+    BuildContext context,
+    String label,
+    String value,
+    IconData icon,
+    Color color,
+    VoidCallback onTap,
+  ) {
     return Card(
       clipBehavior: Clip.antiAlias,
       child: InkWell(
@@ -125,9 +189,18 @@ class DashboardScreen extends ConsumerWidget {
             children: [
               Icon(icon, color: color, size: 24),
               const SizedBox(height: 8),
-              Text(label, style: TextStyle(color: Colors.grey.shade600, fontSize: 12)),
+              Text(
+                label,
+                style: TextStyle(color: Colors.grey.shade600, fontSize: 12),
+              ),
               const SizedBox(height: 4),
-              Text(value, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+              Text(
+                value,
+                style: const TextStyle(
+                  fontWeight: FontWeight.bold,
+                  fontSize: 16,
+                ),
+              ),
             ],
           ),
         ),
@@ -135,7 +208,11 @@ class DashboardScreen extends ConsumerWidget {
     );
   }
 
-  Widget _buildActivityTile(BuildContext context, Map<String, dynamic> activity, NumberFormat fmt) {
+  Widget _buildActivityTile(
+    BuildContext context,
+    Map<String, dynamic> activity,
+    NumberFormat fmt,
+  ) {
     final type = activity['type'] as String;
     String title = '';
     String subtitle = '';
@@ -150,7 +227,8 @@ class DashboardScreen extends ConsumerWidget {
       color = type == 'sale' ? Colors.green : Colors.orange;
     } else {
       final pay = activity['data'] as Payment;
-      title = '${type == 'receipt' ? 'Received from' : 'Paid to'}: ${pay.partyName}';
+      title =
+          '${type == 'receipt' ? 'Received from' : 'Paid to'}: ${pay.partyName}';
       subtitle = fmt.format(pay.totalAmount);
       icon = type == 'receipt' ? Icons.download : Icons.upload;
       color = type == 'receipt' ? Colors.green : Colors.red;
@@ -164,9 +242,18 @@ class DashboardScreen extends ConsumerWidget {
         foregroundColor: color,
         child: Icon(icon, size: 20),
       ),
-      title: Text(title, style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w600)),
-      subtitle: Text(subtitle, style: TextStyle(fontSize: 12, color: Colors.grey.shade600)),
-      trailing: Text(DateFormat('dd MMM').format(date), style: TextStyle(fontSize: 11, color: Colors.grey.shade500)),
+      title: Text(
+        title,
+        style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w600),
+      ),
+      subtitle: Text(
+        subtitle,
+        style: TextStyle(fontSize: 12, color: Colors.grey.shade600),
+      ),
+      trailing: Text(
+        DateFormat('dd MMM').format(date),
+        style: TextStyle(fontSize: 11, color: Colors.grey.shade500),
+      ),
       dense: true,
     );
   }

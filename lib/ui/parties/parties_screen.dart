@@ -12,7 +12,8 @@ class PartiesScreen extends ConsumerStatefulWidget {
   ConsumerState<PartiesScreen> createState() => _PartiesScreenState();
 }
 
-class _PartiesScreenState extends ConsumerState<PartiesScreen> with SingleTickerProviderStateMixin {
+class _PartiesScreenState extends ConsumerState<PartiesScreen>
+    with SingleTickerProviderStateMixin {
   late TabController _tabController;
   final currencyFormat = NumberFormat.currency(locale: 'en_IN', symbol: '₹');
 
@@ -47,17 +48,14 @@ class _PartiesScreenState extends ConsumerState<PartiesScreen> with SingleTicker
           IconButton(
             icon: const Icon(Icons.search),
             onPressed: () {
-               // Implement search
+              // Implement search
             },
           ),
         ],
       ),
       body: TabBarView(
         controller: _tabController,
-        children: [
-          _buildPartyList('customer'),
-          _buildPartyList('supplier'),
-        ],
+        children: [_buildPartyList('customer'), _buildPartyList('supplier')],
       ),
       floatingActionButton: FloatingActionButton(
         backgroundColor: Theme.of(context).colorScheme.primary,
@@ -67,9 +65,11 @@ class _PartiesScreenState extends ConsumerState<PartiesScreen> with SingleTicker
           // Navigate to add party screen
           Navigator.of(context).push(
             MaterialPageRoute(
-               builder: (_) => AddPartyScreen(
-                  initialType: _tabController.index == 0 ? 'customer' : 'supplier',
-               )
+              builder: (_) => AddPartyScreen(
+                initialType: _tabController.index == 0
+                    ? 'customer'
+                    : 'supplier',
+              ),
             ),
           );
         },
@@ -87,11 +87,17 @@ class _PartiesScreenState extends ConsumerState<PartiesScreen> with SingleTicker
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                Icon(Icons.people_alt_outlined, size: 80, color: Colors.grey.shade300),
+                Icon(
+                  Icons.people_alt_outlined,
+                  size: 80,
+                  color: Colors.grey.shade300,
+                ),
                 const SizedBox(height: 16),
                 Text(
                   'No ${partyType}s yet',
-                  style: Theme.of(context).textTheme.titleMedium?.copyWith(color: Colors.grey),
+                  style: Theme.of(
+                    context,
+                  ).textTheme.titleMedium?.copyWith(color: Colors.grey),
                 ),
               ],
             ),
@@ -121,30 +127,34 @@ class _PartiesScreenState extends ConsumerState<PartiesScreen> with SingleTicker
     // Using openingBalance as a placeholder for UI mockup
     final isNegative = party.openingBalance < 0;
     final color = isNegative ? Colors.red : Colors.green;
-    
+
     return Card(
       elevation: 1,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       child: InkWell(
         borderRadius: BorderRadius.circular(12),
         onTap: () {
-           Navigator.of(context).push(
-             MaterialPageRoute(
-               builder: (_) => AddPartyScreen(
-                  initialType: party.partyType,
-                  partyToEdit: party,
-               ),
-             ),
-           );
+          Navigator.of(context).push(
+            MaterialPageRoute(
+              builder: (_) => AddPartyScreen(
+                initialType: party.partyType,
+                partyToEdit: party,
+              ),
+            ),
+          );
         },
         child: Padding(
           padding: const EdgeInsets.all(16.0),
           child: Row(
             children: [
               CircleAvatar(
-                backgroundColor: Theme.of(context).colorScheme.primary.withOpacity(0.1),
+                backgroundColor: Theme.of(
+                  context,
+                ).colorScheme.primary.withOpacity(0.1),
                 foregroundColor: Theme.of(context).colorScheme.primary,
-                child: Text(party.name.isNotEmpty ? party.name[0].toUpperCase() : '?'),
+                child: Text(
+                  party.name.isNotEmpty ? party.name[0].toUpperCase() : '?',
+                ),
               ),
               const SizedBox(width: 16),
               Expanded(
@@ -153,14 +163,21 @@ class _PartiesScreenState extends ConsumerState<PartiesScreen> with SingleTicker
                   children: [
                     Text(
                       party.name,
-                      style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+                      style: const TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 16,
+                      ),
                     ),
-                    if (party.phoneNumber != null && party.phoneNumber!.isNotEmpty)
+                    if (party.phoneNumber != null &&
+                        party.phoneNumber!.isNotEmpty)
                       Padding(
                         padding: const EdgeInsets.only(top: 4.0),
                         child: Text(
                           party.phoneNumber!,
-                          style: TextStyle(color: Colors.grey.shade600, fontSize: 13),
+                          style: TextStyle(
+                            color: Colors.grey.shade600,
+                            fontSize: 13,
+                          ),
                         ),
                       ),
                   ],
@@ -169,20 +186,20 @@ class _PartiesScreenState extends ConsumerState<PartiesScreen> with SingleTicker
               Column(
                 crossAxisAlignment: CrossAxisAlignment.end,
                 children: [
-                   Text(
-                      currencyFormat.format(party.openingBalance.abs()),
-                      style: TextStyle(
-                        fontWeight: FontWeight.bold,
-                        color: color,
-                        fontSize: 15,
-                      ),
-                   ),
-                   Text(
-                     isNegative ? 'To Pay' : 'To Collect',
-                     style: TextStyle(color: Colors.grey.shade500, fontSize: 11),
-                   )
+                  Text(
+                    currencyFormat.format(party.openingBalance.abs()),
+                    style: TextStyle(
+                      fontWeight: FontWeight.bold,
+                      color: color,
+                      fontSize: 15,
+                    ),
+                  ),
+                  Text(
+                    isNegative ? 'To Pay' : 'To Collect',
+                    style: TextStyle(color: Colors.grey.shade500, fontSize: 11),
+                  ),
                 ],
-              )
+              ),
             ],
           ),
         ),

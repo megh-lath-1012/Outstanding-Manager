@@ -28,10 +28,16 @@ class SettingsScreen extends ConsumerWidget {
                     children: [
                       CircleAvatar(
                         radius: 28,
-                        backgroundColor: Theme.of(context).colorScheme.primary.withAlpha(25),
+                        backgroundColor: Theme.of(
+                          context,
+                        ).colorScheme.primary.withAlpha(25),
                         child: Text(
-                          (user.companyName ?? user.displayName)[0].toUpperCase(),
-                          style: TextStyle(fontSize: 24, color: Theme.of(context).colorScheme.primary),
+                          (user.companyName ?? user.displayName)[0]
+                              .toUpperCase(),
+                          style: TextStyle(
+                            fontSize: 24,
+                            color: Theme.of(context).colorScheme.primary,
+                          ),
                         ),
                       ),
                       const SizedBox(width: 16),
@@ -39,8 +45,20 @@ class SettingsScreen extends ConsumerWidget {
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Text(user.companyName ?? user.displayName, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
-                            Text(user.email, style: TextStyle(color: Colors.grey.shade600, fontSize: 13)),
+                            Text(
+                              user.companyName ?? user.displayName,
+                              style: const TextStyle(
+                                fontWeight: FontWeight.bold,
+                                fontSize: 16,
+                              ),
+                            ),
+                            Text(
+                              user.email,
+                              style: TextStyle(
+                                color: Colors.grey.shade600,
+                                fontSize: 13,
+                              ),
+                            ),
                           ],
                         ),
                       ),
@@ -55,41 +73,77 @@ class SettingsScreen extends ConsumerWidget {
           const SizedBox(height: 24),
 
           // General
-          Text('GENERAL', style: TextStyle(fontSize: 12, letterSpacing: 1, fontWeight: FontWeight.bold, color: Colors.grey.shade600)),
+          Text(
+            'GENERAL',
+            style: TextStyle(
+              fontSize: 12,
+              letterSpacing: 1,
+              fontWeight: FontWeight.bold,
+              color: Colors.grey.shade600,
+            ),
+          ),
           const SizedBox(height: 8),
           _settingsTile(
             context,
             icon: Icons.person_outline,
             title: 'Profile Settings',
             subtitle: 'Business name, logo, email, phone',
-            onTap: () => Navigator.of(context).push(MaterialPageRoute(builder: (_) => const EditProfileScreen())),
+            onTap: () => Navigator.of(context).push(
+              MaterialPageRoute(builder: (_) => const EditProfileScreen()),
+            ),
           ),
           _settingsTile(
             context,
             icon: Icons.palette_outlined,
             title: 'Appearance',
             subtitle: 'Theme & display preferences',
-            onTap: () => Navigator.of(context).push(MaterialPageRoute(builder: (_) => const AppearanceScreen())),
+            onTap: () => Navigator.of(
+              context,
+            ).push(MaterialPageRoute(builder: (_) => const AppearanceScreen())),
           ),
 
           const SizedBox(height: 24),
-          Text('LEGAL', style: TextStyle(fontSize: 12, letterSpacing: 1, fontWeight: FontWeight.bold, color: Colors.grey.shade600)),
+          Text(
+            'LEGAL',
+            style: TextStyle(
+              fontSize: 12,
+              letterSpacing: 1,
+              fontWeight: FontWeight.bold,
+              color: Colors.grey.shade600,
+            ),
+          ),
           const SizedBox(height: 8),
           _settingsTile(
             context,
             icon: Icons.privacy_tip_outlined,
             title: 'Privacy Policy',
-            onTap: () => _showInfoDialog(context, 'Privacy Policy', 'Your data is stored securely in the cloud and is only accessible by you. We do not share your data with any third parties.'),
+            onTap: () => _showInfoDialog(
+              context,
+              'Privacy Policy',
+              'Your data is stored securely in the cloud and is only accessible by you. We do not share your data with any third parties.',
+            ),
           ),
           _settingsTile(
             context,
             icon: Icons.description_outlined,
             title: 'Terms & Conditions',
-            onTap: () => _showInfoDialog(context, 'Terms & Conditions', 'By using this app, you agree to use it responsibly for managing your business outstanding records. We are not liable for any data discrepancies.'),
+            onTap: () => _showInfoDialog(
+              context,
+              'Terms & Conditions',
+              'By using this app, you agree to use it responsibly for managing your business outstanding records. We are not liable for any data discrepancies.',
+            ),
           ),
 
           const SizedBox(height: 24),
-          Text('ACCOUNT', style: TextStyle(fontSize: 12, letterSpacing: 1, fontWeight: FontWeight.bold, color: Colors.grey.shade600)),
+          Text(
+            'ACCOUNT',
+            style: TextStyle(
+              fontSize: 12,
+              letterSpacing: 1,
+              fontWeight: FontWeight.bold,
+              color: Colors.grey.shade600,
+            ),
+          ),
           const SizedBox(height: 8),
           _settingsTile(
             context,
@@ -102,7 +156,10 @@ class SettingsScreen extends ConsumerWidget {
 
           const SizedBox(height: 32),
           Center(
-            child: Text('Outstanding Manager v1.0.0', style: TextStyle(fontSize: 12, color: Colors.grey.shade400)),
+            child: Text(
+              'Outstanding Manager v1.0.0',
+              style: TextStyle(fontSize: 12, color: Colors.grey.shade400),
+            ),
           ),
         ],
       ),
@@ -123,9 +180,20 @@ class SettingsScreen extends ConsumerWidget {
       margin: const EdgeInsets.only(bottom: 4),
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       child: ListTile(
-        leading: Icon(icon, color: iconColor ?? Theme.of(context).colorScheme.primary),
-        title: Text(title, style: TextStyle(fontWeight: FontWeight.w600, color: titleColor)),
-        subtitle: subtitle != null ? Text(subtitle, style: TextStyle(fontSize: 12, color: Colors.grey.shade600)) : null,
+        leading: Icon(
+          icon,
+          color: iconColor ?? Theme.of(context).colorScheme.primary,
+        ),
+        title: Text(
+          title,
+          style: TextStyle(fontWeight: FontWeight.w600, color: titleColor),
+        ),
+        subtitle: subtitle != null
+            ? Text(
+                subtitle,
+                style: TextStyle(fontSize: 12, color: Colors.grey.shade600),
+              )
+            : null,
         trailing: const Icon(Icons.chevron_right, size: 20),
         onTap: onTap,
       ),
@@ -138,7 +206,12 @@ class SettingsScreen extends ConsumerWidget {
       builder: (ctx) => AlertDialog(
         title: Text(title),
         content: Text(content, style: const TextStyle(height: 1.5)),
-        actions: [TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Close'))],
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: const Text('Close'),
+          ),
+        ],
       ),
     );
   }
@@ -150,7 +223,10 @@ class SettingsScreen extends ConsumerWidget {
         title: const Text('Sign Out'),
         content: const Text('Are you sure you want to sign out?'),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Cancel')),
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: const Text('Cancel'),
+          ),
           TextButton(
             onPressed: () async {
               Navigator.pop(ctx);

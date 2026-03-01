@@ -13,8 +13,9 @@ final appUserProvider = StreamProvider<AppUser?>((ref) {
   if (user == null) {
     return Stream.value(null);
   }
-  
-  return ref.watch(firebaseFirestoreProvider)
+
+  return ref
+      .watch(firebaseFirestoreProvider)
       .collection('users')
       .doc(user.uid)
       .snapshots()
@@ -41,9 +42,15 @@ class AuthRepository {
 
   User? get currentUser => _auth.currentUser;
 
-  Future<UserCredential> signInWithEmailPassword(String email, String password) async {
+  Future<UserCredential> signInWithEmailPassword(
+    String email,
+    String password,
+  ) async {
     try {
-      return await _auth.signInWithEmailAndPassword(email: email, password: password);
+      return await _auth.signInWithEmailAndPassword(
+        email: email,
+        password: password,
+      );
     } on FirebaseAuthException catch (e) {
       if (e.code == 'user-not-found') {
         throw Exception('No user found for that email.');
@@ -56,7 +63,11 @@ class AuthRepository {
     }
   }
 
-  Future<void> signUpWithEmailPassword(String email, String password, String displayName) async {
+  Future<void> signUpWithEmailPassword(
+    String email,
+    String password,
+    String displayName,
+  ) async {
     try {
       final credential = await _auth.createUserWithEmailAndPassword(
         email: email,
@@ -74,7 +85,7 @@ class AuthRepository {
           'createdAt': FieldValue.serverTimestamp(),
           'updatedAt': FieldValue.serverTimestamp(),
         });
-        
+
         // Optionally send email verification
         // await credential.user!.sendEmailVerification();
       }
@@ -105,7 +116,7 @@ class AuthRepository {
     try {
       await _auth.sendPasswordResetEmail(email: email);
     } catch (e) {
-       throw Exception('Failed to send reset email: $e');
+      throw Exception('Failed to send reset email: $e');
     }
   }
 }

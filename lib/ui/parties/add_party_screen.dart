@@ -21,7 +21,7 @@ class AddPartyScreen extends ConsumerStatefulWidget {
 class _AddPartyScreenState extends ConsumerState<AddPartyScreen> {
   final _formKey = GlobalKey<FormState>();
   late String _partyType;
-  
+
   final _nameController = TextEditingController();
   final _contactController = TextEditingController();
   final _phoneController = TextEditingController();
@@ -36,7 +36,7 @@ class _AddPartyScreenState extends ConsumerState<AddPartyScreen> {
   void initState() {
     super.initState();
     _partyType = widget.partyToEdit?.partyType ?? widget.initialType;
-    
+
     if (widget.partyToEdit != null) {
       final p = widget.partyToEdit!;
       _nameController.text = p.name;
@@ -65,7 +65,7 @@ class _AddPartyScreenState extends ConsumerState<AddPartyScreen> {
 
   Future<void> _save() async {
     if (!_formKey.currentState!.validate()) return;
-    
+
     FocusScope.of(context).unfocus();
     setState(() => _isLoading = true);
 
@@ -91,7 +91,9 @@ class _AddPartyScreenState extends ConsumerState<AddPartyScreen> {
       if (widget.partyToEdit == null) {
         await ref.read(partyRepositoryProvider).createParty(partyData);
       } else {
-        await ref.read(partyRepositoryProvider).updateParty(widget.partyToEdit!.id, partyData.toMap());
+        await ref
+            .read(partyRepositoryProvider)
+            .updateParty(widget.partyToEdit!.id, partyData.toMap());
       }
 
       if (mounted) {
@@ -102,7 +104,7 @@ class _AddPartyScreenState extends ConsumerState<AddPartyScreen> {
       }
     } catch (e) {
       if (mounted) {
-         ScaffoldMessenger.of(context).showSnackBar(
+        ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text('Error: $e'), backgroundColor: Colors.red),
         );
       }
@@ -124,7 +126,7 @@ class _AddPartyScreenState extends ConsumerState<AddPartyScreen> {
           IconButton(
             icon: const Icon(Icons.check),
             onPressed: _isLoading ? null : _save,
-          )
+          ),
         ],
       ),
       body: _isLoading
@@ -138,7 +140,10 @@ class _AddPartyScreenState extends ConsumerState<AddPartyScreen> {
                   children: [
                     // Type Selection
                     if (!isEditing) ...[
-                      const Text('Party Type', style: TextStyle(fontWeight: FontWeight.bold)),
+                      const Text(
+                        'Party Type',
+                        style: TextStyle(fontWeight: FontWeight.bold),
+                      ),
                       const SizedBox(height: 8),
                       Row(
                         children: [
@@ -167,14 +172,19 @@ class _AddPartyScreenState extends ConsumerState<AddPartyScreen> {
 
                     TextFormField(
                       controller: _nameController,
-                      decoration: const InputDecoration(labelText: 'Party or Business Name *'),
-                      validator: (v) => v == null || v.isEmpty ? 'Required field' : null,
+                      decoration: const InputDecoration(
+                        labelText: 'Party or Business Name *',
+                      ),
+                      validator: (v) =>
+                          v == null || v.isEmpty ? 'Required field' : null,
                     ),
                     const SizedBox(height: 16),
-                    
+
                     TextFormField(
                       controller: _contactController,
-                      decoration: const InputDecoration(labelText: 'Contact Person Name'),
+                      decoration: const InputDecoration(
+                        labelText: 'Contact Person Name',
+                      ),
                     ),
                     const SizedBox(height: 16),
 
@@ -184,7 +194,9 @@ class _AddPartyScreenState extends ConsumerState<AddPartyScreen> {
                           child: TextFormField(
                             controller: _phoneController,
                             keyboardType: TextInputType.phone,
-                            decoration: const InputDecoration(labelText: 'Phone Number'),
+                            decoration: const InputDecoration(
+                              labelText: 'Phone Number',
+                            ),
                           ),
                         ),
                         const SizedBox(width: 16),
@@ -192,7 +204,9 @@ class _AddPartyScreenState extends ConsumerState<AddPartyScreen> {
                           child: TextFormField(
                             controller: _emailController,
                             keyboardType: TextInputType.emailAddress,
-                            decoration: const InputDecoration(labelText: 'Email Address'),
+                            decoration: const InputDecoration(
+                              labelText: 'Email Address',
+                            ),
                           ),
                         ),
                       ],
@@ -201,7 +215,9 @@ class _AddPartyScreenState extends ConsumerState<AddPartyScreen> {
 
                     TextFormField(
                       controller: _gstController,
-                      decoration: const InputDecoration(labelText: 'GST / Tax Number'),
+                      decoration: const InputDecoration(
+                        labelText: 'GST / Tax Number',
+                      ),
                       textCapitalization: TextCapitalization.characters,
                     ),
                     const SizedBox(height: 16),
@@ -212,10 +228,13 @@ class _AddPartyScreenState extends ConsumerState<AddPartyScreen> {
                         Expanded(
                           child: TextFormField(
                             controller: _balanceController,
-                            keyboardType: const TextInputType.numberWithOptions(decimal: true, signed: true),
+                            keyboardType: const TextInputType.numberWithOptions(
+                              decimal: true,
+                              signed: true,
+                            ),
                             decoration: const InputDecoration(
-                               labelText: 'Opening Balance',
-                               prefixText: '₹ ',
+                              labelText: 'Opening Balance',
+                              prefixText: '₹ ',
                             ),
                           ),
                         ),
@@ -231,12 +250,19 @@ class _AddPartyScreenState extends ConsumerState<AddPartyScreen> {
                       ),
                       child: const Row(
                         children: [
-                          Icon(Icons.info_outline, color: Colors.blue, size: 20),
+                          Icon(
+                            Icons.info_outline,
+                            color: Colors.blue,
+                            size: 20,
+                          ),
                           SizedBox(width: 8),
                           Expanded(
                             child: Text(
                               'Enter a Positive (+) amount if you need to COLLECT money from them. \nEnter a Negative (-) amount if you need to PAY money to them.',
-                              style: TextStyle(fontSize: 12, color: Colors.blueGrey),
+                              style: TextStyle(
+                                fontSize: 12,
+                                color: Colors.blueGrey,
+                              ),
                             ),
                           ),
                         ],
@@ -247,9 +273,11 @@ class _AddPartyScreenState extends ConsumerState<AddPartyScreen> {
                     TextFormField(
                       controller: _addressController,
                       maxLines: 3,
-                      decoration: const InputDecoration(labelText: 'Billing Address'),
+                      decoration: const InputDecoration(
+                        labelText: 'Billing Address',
+                      ),
                     ),
-                    
+
                     const SizedBox(height: 32),
                     SizedBox(
                       width: double.infinity,

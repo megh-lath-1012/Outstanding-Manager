@@ -44,12 +44,16 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
         'gstNumber': _gstController.text.trim(),
       });
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Profile updated!')));
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(const SnackBar(content: Text('Profile updated!')));
         Navigator.pop(context);
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error: $e'), backgroundColor: Colors.red));
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Error: $e'), backgroundColor: Colors.red),
+        );
       }
     } finally {
       if (mounted) setState(() => _isLoading = false);
@@ -86,22 +90,36 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
                       children: [
                         CircleAvatar(
                           radius: 50,
-                          backgroundColor: Theme.of(context).colorScheme.primary,
+                          backgroundColor: Theme.of(
+                            context,
+                          ).colorScheme.primary,
                           foregroundColor: Colors.white,
                           child: Text(
-                            (user?.companyName ?? user?.displayName ?? '?')[0].toUpperCase(),
+                            (user?.companyName ?? user?.displayName ?? '?')[0]
+                                .toUpperCase(),
                             style: const TextStyle(fontSize: 40),
                           ),
                         ),
                         const SizedBox(height: 8),
-                        Text(user?.email ?? '', style: TextStyle(color: Colors.grey.shade600)),
+                        Text(
+                          user?.email ?? '',
+                          style: TextStyle(color: Colors.grey.shade600),
+                        ),
                       ],
                     ),
                   ),
                   const SizedBox(height: 32),
 
                   // Business Details Section
-                  Text('BUSINESS DETAILS', style: TextStyle(fontSize: 12, letterSpacing: 1, fontWeight: FontWeight.bold, color: Colors.grey.shade600)),
+                  Text(
+                    'BUSINESS DETAILS',
+                    style: TextStyle(
+                      fontSize: 12,
+                      letterSpacing: 1,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.grey.shade600,
+                    ),
+                  ),
                   const SizedBox(height: 12),
                   TextFormField(
                     controller: _companyNameController,
@@ -143,7 +161,15 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
                   const SizedBox(height: 32),
 
                   // Personal Details Section
-                  Text('PERSONAL DETAILS', style: TextStyle(fontSize: 12, letterSpacing: 1, fontWeight: FontWeight.bold, color: Colors.grey.shade600)),
+                  Text(
+                    'PERSONAL DETAILS',
+                    style: TextStyle(
+                      fontSize: 12,
+                      letterSpacing: 1,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.grey.shade600,
+                    ),
+                  ),
                   const SizedBox(height: 12),
                   TextFormField(
                     controller: _nameController,
@@ -151,7 +177,8 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
                       labelText: 'Your Name *',
                       prefixIcon: Icon(Icons.person),
                     ),
-                    validator: (v) => (v == null || v.trim().isEmpty) ? 'Required' : null,
+                    validator: (v) =>
+                        (v == null || v.trim().isEmpty) ? 'Required' : null,
                   ),
                   const SizedBox(height: 16),
                   TextFormField(
@@ -169,10 +196,19 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
                     child: ElevatedButton.icon(
                       onPressed: _isLoading ? null : _save,
                       icon: _isLoading
-                          ? const SizedBox(height: 18, width: 18, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
+                          ? const SizedBox(
+                              height: 18,
+                              width: 18,
+                              child: CircularProgressIndicator(
+                                strokeWidth: 2,
+                                color: Colors.white,
+                              ),
+                            )
                           : const Icon(Icons.check_circle),
                       label: const Text('Save Changes'),
-                      style: ElevatedButton.styleFrom(padding: const EdgeInsets.symmetric(vertical: 16)),
+                      style: ElevatedButton.styleFrom(
+                        padding: const EdgeInsets.symmetric(vertical: 16),
+                      ),
                     ),
                   ),
                 ],

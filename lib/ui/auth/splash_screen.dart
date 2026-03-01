@@ -21,13 +21,13 @@ class _SplashScreenState extends ConsumerState<SplashScreen> {
   Future<void> _checkAuth() async {
     // Artificial delay for splash screen branding
     await Future.delayed(const Duration(seconds: 2));
-    
+
     if (!mounted) return;
-    
+
     // Auth state is checked via Router redirects or inside the splash logic if preferred.
     // For now, we will just read auth state.
     final authState = ref.read(authStateProvider).value;
-    
+
     if (authState != null) {
       context.go('/dashboard');
     } else {
