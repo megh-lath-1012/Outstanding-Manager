@@ -137,7 +137,7 @@ class _BusinessSettingsScreenState
                       labelText: 'Currency',
                       prefixIcon: Icon(Icons.currency_exchange),
                     ),
-                    value: _currency,
+                    initialValue: _currency,
                     items: _currencies
                         .map((c) => DropdownMenuItem(value: c, child: Text(c)))
                         .toList(),

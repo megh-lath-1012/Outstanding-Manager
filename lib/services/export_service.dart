@@ -81,7 +81,7 @@ class ExportService {
     if (fileBytes != null) {
       final directory = await _getExportDirectory();
       final filePath = '${directory.path}/${title.replaceAll(' ', '_')}.xlsx';
-      final file = File(filePath)
+      File(filePath)
         ..createSync(recursive: true)
         ..writeAsBytesSync(fileBytes);
 

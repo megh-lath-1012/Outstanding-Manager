@@ -136,10 +136,13 @@ class _PurchasesScreenState extends ConsumerState<PurchasesScreen> {
                   Navigator.pop(context); // Close loader
 
                   if (filePath != null) {
-                    await Share.shareXFiles([
-                      XFile(filePath),
-                    ], text: 'Purchase Outstanding');
-                    
+                    await SharePlus.instance.share(
+                      ShareParams(
+                        files: [XFile(filePath)],
+                        subject: 'Purchase Outstanding',
+                      ),
+                    );
+
                     if (!context.mounted) return;
                     ScaffoldMessenger.of(context).showSnackBar(
                       SnackBar(

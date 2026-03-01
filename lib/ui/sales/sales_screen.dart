@@ -135,10 +135,13 @@ class _SalesScreenState extends ConsumerState<SalesScreen> {
                   Navigator.pop(context); // Close loader
 
                   if (filePath != null) {
-                    await Share.shareXFiles([
-                      XFile(filePath),
-                    ], text: 'Sales Outstanding');
-                    
+                    await SharePlus.instance.share(
+                      ShareParams(
+                        files: [XFile(filePath)],
+                        subject: 'Sales Outstanding',
+                      ),
+                    );
+
                     if (!context.mounted) return;
                     ScaffoldMessenger.of(context).showSnackBar(
                       SnackBar(

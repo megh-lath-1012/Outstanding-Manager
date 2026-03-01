@@ -145,27 +145,25 @@ class _AddPartyScreenState extends ConsumerState<AddPartyScreen> {
                         style: TextStyle(fontWeight: FontWeight.bold),
                       ),
                       const SizedBox(height: 8),
-                      Row(
-                        children: [
-                          Expanded(
-                            child: RadioListTile<String>(
-                              title: const Text('Customer'),
-                              value: 'customer',
-                              groupValue: _partyType,
-                              contentPadding: EdgeInsets.zero,
-                              onChanged: (v) => setState(() => _partyType = v!),
-                            ),
+                      SegmentedButton<String>(
+                        segments: const [
+                          ButtonSegment(
+                            value: 'customer',
+                            label: Text('Customer'),
+                            icon: Icon(Icons.person),
                           ),
-                          Expanded(
-                            child: RadioListTile<String>(
-                              title: const Text('Supplier'),
-                              value: 'supplier',
-                              groupValue: _partyType,
-                              contentPadding: EdgeInsets.zero,
-                              onChanged: (v) => setState(() => _partyType = v!),
-                            ),
+                          ButtonSegment(
+                            value: 'supplier',
+                            label: Text('Supplier'),
+                            icon: Icon(Icons.business),
                           ),
                         ],
+                        selected: {_partyType},
+                        onSelectionChanged: (Set<String> newSelection) {
+                          setState(() {
+                            _partyType = newSelection.first;
+                          });
+                        },
                       ),
                       const SizedBox(height: 16),
                     ],
@@ -246,7 +244,9 @@ class _AddPartyScreenState extends ConsumerState<AddPartyScreen> {
                       decoration: BoxDecoration(
                         color: Colors.blue.withAlpha(13), // 0.05 * 255
                         borderRadius: BorderRadius.circular(8),
-                        border: Border.all(color: Colors.blue.withAlpha(51)), // 0.2 * 255
+                        border: Border.all(
+                          color: Colors.blue.withAlpha(51),
+                        ), // 0.2 * 255
                       ),
                       child: const Row(
                         children: [

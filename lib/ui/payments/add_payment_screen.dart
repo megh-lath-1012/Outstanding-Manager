@@ -316,7 +316,7 @@ class _AddPaymentScreenState extends ConsumerState<AddPaymentScreen> {
                                 size: 18,
                               ),
                             ),
-                            value: _paymentMethod,
+                            initialValue: _paymentMethod,
                             items: _paymentMethods
                                 .map(
                                   (m) => DropdownMenuItem(

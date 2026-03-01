@@ -293,7 +293,7 @@ class _RecordPaymentScreenState extends ConsumerState<RecordPaymentScreen> {
                             decoration: const InputDecoration(
                               labelText: 'Method *',
                             ),
-                            value: _paymentMethod,
+                            initialValue: _paymentMethod,
                             isExpanded: true,
                             items: _methods
                                 .map(
