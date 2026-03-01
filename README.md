@@ -27,7 +27,7 @@ A premium, cross-platform Flutter application designed to help businesses track 
 - **State Management**: [Riverpod](https://riverpod.dev/)
 - **Database & Auth**: [Firebase](https://firebase.google.com/) (Firestore, Auth)
 - **Reporting**: `pdf` and `excel` packages
-- **UI Architecture**: Clean and modular component-based design
+- **CI/CD**: GitHub Actions (Automated Analysis & Testing)
 
 ## 🚀 Getting Started
 

@@ -5,8 +5,12 @@ import 'payment_provider.dart';
 
 /// Dashboard metrics computed from invoices and payments
 final dashboardMetricsProvider = Provider<AsyncValue<DashboardMetrics>>((ref) {
-  final salesAsync = ref.watch(invoicesProvider(InvoiceQuery(invoiceType: 'sales')));
-  final purchasesAsync = ref.watch(invoicesProvider(InvoiceQuery(invoiceType: 'purchase')));
+  final salesAsync = ref.watch(
+    invoicesProvider(InvoiceQuery(invoiceType: 'sales')),
+  );
+  final purchasesAsync = ref.watch(
+    invoicesProvider(InvoiceQuery(invoiceType: 'purchase')),
+  );
 
   return salesAsync.when(
     data: (sales) {
@@ -26,14 +30,16 @@ final dashboardMetricsProvider = Provider<AsyncValue<DashboardMetrics>>((ref) {
             purchasePaid += inv.paidAmount;
           }
 
-          return AsyncValue.data(DashboardMetrics(
-            totalSales: totalSales,
-            salesOutstanding: salesOutstanding,
-            salesReceived: salesReceived,
-            totalPurchases: totalPurchases,
-            purchaseOutstanding: purchaseOutstanding,
-            purchasePaid: purchasePaid,
-          ));
+          return AsyncValue.data(
+            DashboardMetrics(
+              totalSales: totalSales,
+              salesOutstanding: salesOutstanding,
+              salesReceived: salesReceived,
+              totalPurchases: totalPurchases,
+              purchaseOutstanding: purchaseOutstanding,
+              purchasePaid: purchasePaid,
+            ),
+          );
         },
         loading: () => const AsyncValue.loading(),
         error: (e, s) => AsyncValue.error(e, s),
@@ -45,35 +51,66 @@ final dashboardMetricsProvider = Provider<AsyncValue<DashboardMetrics>>((ref) {
 });
 
 /// Recent activity (last 10 invoices + payments combined)
-final recentActivityProvider = Provider<AsyncValue<List<Map<String, dynamic>>>>((ref) {
-  final salesAsync = ref.watch(invoicesProvider(InvoiceQuery(invoiceType: 'sales')));
-  final purchasesAsync = ref.watch(invoicesProvider(InvoiceQuery(invoiceType: 'purchase')));
-  final receiptsAsync = ref.watch(paymentsProvider(PaymentQuery(paymentType: 'receipt')));
-  final paymentsOutAsync = ref.watch(paymentsProvider(PaymentQuery(paymentType: 'payment')));
+final recentActivityProvider = Provider<AsyncValue<List<Map<String, dynamic>>>>(
+  (ref) {
+    final salesAsync = ref.watch(
+      invoicesProvider(InvoiceQuery(invoiceType: 'sales')),
+    );
+    final purchasesAsync = ref.watch(
+      invoicesProvider(InvoiceQuery(invoiceType: 'purchase')),
+    );
+    final receiptsAsync = ref.watch(
+      paymentsProvider(PaymentQuery(paymentType: 'receipt')),
+    );
+    final paymentsOutAsync = ref.watch(
+      paymentsProvider(PaymentQuery(paymentType: 'payment')),
+    );
 
-  return salesAsync.when(
-    data: (sales) => purchasesAsync.when(
-      data: (purchases) => receiptsAsync.when(
-        data: (receipts) => paymentsOutAsync.when(
-          data: (paymentsOut) {
-            final List<Map<String, dynamic>> activities = [];
+    return salesAsync.when(
+      data: (sales) => purchasesAsync.when(
+        data: (purchases) => receiptsAsync.when(
+          data: (receipts) => paymentsOutAsync.when(
+            data: (paymentsOut) {
+              final List<Map<String, dynamic>> activities = [];
 
-            for (var inv in sales) {
-              activities.add({'type': 'sale', 'date': inv.invoiceDate, 'data': inv});
-            }
-            for (var inv in purchases) {
-              activities.add({'type': 'purchase', 'date': inv.invoiceDate, 'data': inv});
-            }
-            for (var pay in receipts) {
-              activities.add({'type': 'receipt', 'date': pay.paymentDate, 'data': pay});
-            }
-            for (var pay in paymentsOut) {
-              activities.add({'type': 'payment', 'date': pay.paymentDate, 'data': pay});
-            }
+              for (var inv in sales) {
+                activities.add({
+                  'type': 'sale',
+                  'date': inv.invoiceDate,
+                  'data': inv,
+                });
+              }
+              for (var inv in purchases) {
+                activities.add({
+                  'type': 'purchase',
+                  'date': inv.invoiceDate,
+                  'data': inv,
+                });
+              }
+              for (var pay in receipts) {
+                activities.add({
+                  'type': 'receipt',
+                  'date': pay.paymentDate,
+                  'data': pay,
+                });
+              }
+              for (var pay in paymentsOut) {
+                activities.add({
+                  'type': 'payment',
+                  'date': pay.paymentDate,
+                  'data': pay,
+                });
+              }
 
-            activities.sort((a, b) => (b['date'] as DateTime).compareTo(a['date'] as DateTime));
-            return AsyncValue.data(activities.take(10).toList());
-          },
+              activities.sort(
+                (a, b) =>
+                    (b['date'] as DateTime).compareTo(a['date'] as DateTime),
+              );
+              return AsyncValue.data(activities.take(10).toList());
+            },
+            loading: () => const AsyncValue.loading(),
+            error: (e, s) => AsyncValue.error(e, s),
+          ),
           loading: () => const AsyncValue.loading(),
           error: (e, s) => AsyncValue.error(e, s),
         ),
@@ -82,8 +119,6 @@ final recentActivityProvider = Provider<AsyncValue<List<Map<String, dynamic>>>>(
       ),
       loading: () => const AsyncValue.loading(),
       error: (e, s) => AsyncValue.error(e, s),
-    ),
-    loading: () => const AsyncValue.loading(),
-    error: (e, s) => AsyncValue.error(e, s),
-  );
-});
+    );
+  },
+);

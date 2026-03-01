@@ -6,10 +6,12 @@ class BusinessSettingsScreen extends ConsumerStatefulWidget {
   const BusinessSettingsScreen({super.key});
 
   @override
-  ConsumerState<BusinessSettingsScreen> createState() => _BusinessSettingsScreenState();
+  ConsumerState<BusinessSettingsScreen> createState() =>
+      _BusinessSettingsScreenState();
 }
 
-class _BusinessSettingsScreenState extends ConsumerState<BusinessSettingsScreen> {
+class _BusinessSettingsScreenState
+    extends ConsumerState<BusinessSettingsScreen> {
   final _formKey = GlobalKey<FormState>();
   final _companyNameController = TextEditingController();
   final _gstController = TextEditingController();
@@ -42,12 +44,16 @@ class _BusinessSettingsScreenState extends ConsumerState<BusinessSettingsScreen>
         'currency': _currency,
       });
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Business settings saved!')));
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Business settings saved!')),
+        );
         Navigator.pop(context);
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error: $e'), backgroundColor: Colors.red));
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Error: $e'), backgroundColor: Colors.red),
+        );
       }
     } finally {
       if (mounted) setState(() => _isLoading = false);
@@ -77,7 +83,12 @@ class _BusinessSettingsScreenState extends ConsumerState<BusinessSettingsScreen>
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text('Company Information', style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold)),
+                  Text(
+                    'Company Information',
+                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
                   const SizedBox(height: 16),
                   TextFormField(
                     controller: _companyNameController,
@@ -105,7 +116,12 @@ class _BusinessSettingsScreenState extends ConsumerState<BusinessSettingsScreen>
                     ),
                   ),
                   const SizedBox(height: 32),
-                  Text('Invoice Defaults', style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold)),
+                  Text(
+                    'Invoice Defaults',
+                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
                   const SizedBox(height: 16),
                   TextFormField(
                     controller: _prefixController,
@@ -121,10 +137,14 @@ class _BusinessSettingsScreenState extends ConsumerState<BusinessSettingsScreen>
                       labelText: 'Currency',
                       prefixIcon: Icon(Icons.currency_exchange),
                     ),
-                    value: _currency,
-                    items: _currencies.map((c) => DropdownMenuItem(value: c, child: Text(c))).toList(),
+                    initialValue: _currency,
+                    items: _currencies
+                        .map((c) => DropdownMenuItem(value: c, child: Text(c)))
+                        .toList(),
                     onChanged: (val) {
-                      if (val != null) setState(() => _currency = val);
+                      if (val != null) {
+                        setState(() => _currency = val);
+                      }
                     },
                   ),
                   const SizedBox(height: 32),
@@ -133,7 +153,14 @@ class _BusinessSettingsScreenState extends ConsumerState<BusinessSettingsScreen>
                     child: ElevatedButton(
                       onPressed: _isLoading ? null : _save,
                       child: _isLoading
-                          ? const SizedBox(height: 20, width: 20, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
+                          ? const SizedBox(
+                              height: 20,
+                              width: 20,
+                              child: CircularProgressIndicator(
+                                strokeWidth: 2,
+                                color: Colors.white,
+                              ),
+                            )
                           : const Text('Save Settings'),
                     ),
                   ),

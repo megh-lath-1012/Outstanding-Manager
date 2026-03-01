@@ -18,7 +18,10 @@ class SalesScreen extends ConsumerStatefulWidget {
 }
 
 class _SalesScreenState extends ConsumerState<SalesScreen> {
-  final currencyFormat = NumberFormat.currency(locale: 'en_IN', symbol: '\u20b9');
+  final currencyFormat = NumberFormat.currency(
+    locale: 'en_IN',
+    symbol: '\u20b9',
+  );
   String _searchTerm = '';
   final _searchController = TextEditingController();
 
@@ -49,10 +52,16 @@ class _SalesScreenState extends ConsumerState<SalesScreen> {
         list.sort((a, b) => a.outstandingAmount.compareTo(b.outstandingAmount));
         break;
       case 'Party: A-Z':
-        list.sort((a, b) => a.partyName.toLowerCase().compareTo(b.partyName.toLowerCase()));
+        list.sort(
+          (a, b) =>
+              a.partyName.toLowerCase().compareTo(b.partyName.toLowerCase()),
+        );
         break;
       case 'Party: Z-A':
-        list.sort((a, b) => b.partyName.toLowerCase().compareTo(a.partyName.toLowerCase()));
+        list.sort(
+          (a, b) =>
+              b.partyName.toLowerCase().compareTo(a.partyName.toLowerCase()),
+        );
         break;
     }
   }
@@ -70,52 +79,118 @@ class _SalesScreenState extends ConsumerState<SalesScreen> {
             icon: const Icon(Icons.more_vert),
             onSelected: (val) async {
               if (val == 'History') {
-                Navigator.push(context, MaterialPageRoute(builder: (_) => const PaymentHistoryScreen(paymentType: 'receipt')));
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (_) =>
+                        const PaymentHistoryScreen(paymentType: 'receipt'),
+                  ),
+                );
               } else if (val == 'Ledger') {
-                Navigator.push(context, MaterialPageRoute(builder: (_) => const PartyLedgerScreen(partyType: 'customer')));
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (_) =>
+                        const PartyLedgerScreen(partyType: 'customer'),
+                  ),
+                );
               } else if (val == 'Excel' || val == 'PDF') {
                 final allInvoices = invoicesAsync.value ?? [];
-                final invoices = allInvoices.where((inv) => inv.paymentStatus != 'paid').toList();
+                final invoices = allInvoices
+                    .where((inv) => inv.paymentStatus != 'paid')
+                    .toList();
                 _sortInvoices(invoices);
-                final total = invoices.fold(0.0, (s, i) => s + i.outstandingAmount);
+                final total = invoices.fold(
+                  0.0,
+                  (s, i) => s + i.outstandingAmount,
+                );
                 final service = ExportService();
 
                 if (mounted) {
                   showDialog(
                     context: context,
                     barrierDismissible: false,
-                    builder: (context) => const Center(child: CircularProgressIndicator()),
+                    builder: (context) =>
+                        const Center(child: CircularProgressIndicator()),
                   );
                 }
 
                 try {
                   String? filePath;
                   if (val == 'Excel') {
-                    filePath = await service.exportToExcel(title: 'Sales Outstanding', invoices: invoices, totalOutstanding: total);
+                    filePath = await service.exportToExcel(
+                      title: 'Sales Outstanding',
+                      invoices: invoices,
+                      totalOutstanding: total,
+                    );
                   } else {
-                    filePath = await service.exportToPDF(title: 'Sales Outstanding', invoices: invoices, totalOutstanding: total);
+                    filePath = await service.exportToPDF(
+                      title: 'Sales Outstanding',
+                      invoices: invoices,
+                      totalOutstanding: total,
+                    );
                   }
 
-                  if (!mounted) return;
+                  if (!context.mounted) return;
                   Navigator.pop(context); // Close loader
 
                   if (filePath != null) {
-                    await Share.shareXFiles([XFile(filePath)], text: 'Sales Outstanding');
-                    if (!mounted) return;
-                    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Sales Outstanding exported as $val')));
+                    await SharePlus.instance.share(
+                      ShareParams(
+                        files: [XFile(filePath)],
+                        subject: 'Sales Outstanding',
+                      ),
+                    );
+
+                    if (!context.mounted) return;
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: Text('Sales Outstanding exported as $val'),
+                      ),
+                    );
                   }
                 } catch (e) {
-                  if (!mounted) return;
-                  Navigator.pop(context); // Close loader
-                  ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Export failed: $e'), backgroundColor: Colors.red));
+                  if (context.mounted) {
+                    Navigator.pop(context); // Close loader
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: Text('Export failed: $e'),
+                        backgroundColor: Colors.red,
+                      ),
+                    );
+                  }
                 }
               }
             },
             itemBuilder: (_) => [
-              const PopupMenuItem(value: 'History', child: ListTile(leading: Icon(Icons.history), title: Text('Payment History'))),
-              const PopupMenuItem(value: 'Ledger', child: ListTile(leading: Icon(Icons.menu_book), title: Text('Access Ledger'))),
-              const PopupMenuItem(value: 'Excel', child: ListTile(leading: Icon(Icons.table_chart), title: Text('Export to Excel'))),
-              const PopupMenuItem(value: 'PDF', child: ListTile(leading: Icon(Icons.picture_as_pdf), title: Text('Export to PDF'))),
+              const PopupMenuItem(
+                value: 'History',
+                child: ListTile(
+                  leading: Icon(Icons.history),
+                  title: Text('Payment History'),
+                ),
+              ),
+              const PopupMenuItem(
+                value: 'Ledger',
+                child: ListTile(
+                  leading: Icon(Icons.menu_book),
+                  title: Text('Access Ledger'),
+                ),
+              ),
+              const PopupMenuItem(
+                value: 'Excel',
+                child: ListTile(
+                  leading: Icon(Icons.table_chart),
+                  title: Text('Export to Excel'),
+                ),
+              ),
+              const PopupMenuItem(
+                value: 'PDF',
+                child: ListTile(
+                  leading: Icon(Icons.picture_as_pdf),
+                  title: Text('Export to PDF'),
+                ),
+              ),
             ],
           ),
         ],
@@ -145,8 +220,13 @@ class _SalesScreenState extends ConsumerState<SalesScreen> {
                               },
                             )
                           : null,
-                      contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 0),
-                      border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                      contentPadding: const EdgeInsets.symmetric(
+                        horizontal: 16,
+                        vertical: 0,
+                      ),
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
                     ),
                     onChanged: (val) => setState(() {
                       _searchTerm = val;
@@ -159,21 +239,42 @@ class _SalesScreenState extends ConsumerState<SalesScreen> {
                   icon: const Icon(Icons.sort),
                   tooltip: 'Sort By',
                   onSelected: (val) => setState(() => _sortBy = val),
-                  itemBuilder: (_) => [
-                    'Date: Oldest',
-                    'Date: Newest',
-                    'Amount: High to Low',
-                    'Amount: Low to High',
-                    'Party: A-Z',
-                    'Party: Z-A',
-                  ].map((s) => PopupMenuItem(
-                    value: s,
-                    child: Row(children: [
-                      Icon(Icons.check, color: _sortBy == s ? Colors.blue : Colors.transparent, size: 18),
-                      const SizedBox(width: 8),
-                      Text(s, style: TextStyle(fontSize: 13, fontWeight: _sortBy == s ? FontWeight.bold : null)),
-                    ]),
-                  )).toList(),
+                  itemBuilder: (_) =>
+                      [
+                            'Date: Oldest',
+                            'Date: Newest',
+                            'Amount: High to Low',
+                            'Amount: Low to High',
+                            'Party: A-Z',
+                            'Party: Z-A',
+                          ]
+                          .map(
+                            (s) => PopupMenuItem(
+                              value: s,
+                              child: Row(
+                                children: [
+                                  Icon(
+                                    Icons.check,
+                                    color: _sortBy == s
+                                        ? Colors.blue
+                                        : Colors.transparent,
+                                    size: 18,
+                                  ),
+                                  const SizedBox(width: 8),
+                                  Text(
+                                    s,
+                                    style: TextStyle(
+                                      fontSize: 13,
+                                      fontWeight: _sortBy == s
+                                          ? FontWeight.bold
+                                          : null,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          )
+                          .toList(),
                 ),
               ],
             ),
@@ -183,17 +284,28 @@ class _SalesScreenState extends ConsumerState<SalesScreen> {
           Expanded(
             child: invoicesAsync.when(
               data: (allInvoices) {
-                final invoices = allInvoices.where((inv) => inv.paymentStatus != 'paid').toList();
+                final invoices = allInvoices
+                    .where((inv) => inv.paymentStatus != 'paid')
+                    .toList();
                 _sortInvoices(invoices);
-                
+
                 if (invoices.isEmpty) {
                   return Center(
                     child: Column(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        Icon(Icons.receipt_long_outlined, size: 80, color: Colors.grey.shade300),
+                        Icon(
+                          Icons.receipt_long_outlined,
+                          size: 80,
+                          color: Colors.grey.shade300,
+                        ),
                         const SizedBox(height: 16),
-                        Text('No sales records yet', style: Theme.of(context).textTheme.titleMedium?.copyWith(color: Colors.grey)),
+                        Text(
+                          'No sales records yet',
+                          style: Theme.of(
+                            context,
+                          ).textTheme.titleMedium?.copyWith(color: Colors.grey),
+                        ),
                       ],
                     ),
                   );
@@ -205,7 +317,10 @@ class _SalesScreenState extends ConsumerState<SalesScreen> {
                 return RefreshIndicator(
                   onRefresh: () async => ref.refresh(invoicesProvider(query)),
                   child: ListView.builder(
-                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 16,
+                      vertical: 4,
+                    ),
                     itemCount: visibleInvoices.length + (hasMore ? 1 : 0),
                     itemBuilder: (context, index) {
                       if (index == visibleInvoices.length) {
@@ -214,7 +329,8 @@ class _SalesScreenState extends ConsumerState<SalesScreen> {
                           padding: const EdgeInsets.all(16),
                           child: Center(
                             child: OutlinedButton(
-                              onPressed: () => setState(() => _visibleCount += _pageSize),
+                              onPressed: () =>
+                                  setState(() => _visibleCount += _pageSize),
                               child: const Text('Load More'),
                             ),
                           ),
@@ -246,7 +362,9 @@ class _SalesScreenState extends ConsumerState<SalesScreen> {
 
   Widget _buildInvoiceCard(Invoice inv) {
     final isPaid = inv.paymentStatus == 'paid';
-    final statusColor = isPaid ? Colors.green : (inv.paymentStatus == 'partial' ? Colors.orange : Colors.red);
+    final statusColor = isPaid
+        ? Colors.green
+        : (inv.paymentStatus == 'partial' ? Colors.orange : Colors.red);
 
     return Card(
       elevation: 0.5,
@@ -262,12 +380,33 @@ class _SalesScreenState extends ConsumerState<SalesScreen> {
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Expanded(
-                  child: Text(inv.partyName, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15), maxLines: 1, overflow: TextOverflow.ellipsis),
+                  child: Text(
+                    inv.partyName,
+                    style: const TextStyle(
+                      fontWeight: FontWeight.bold,
+                      fontSize: 15,
+                    ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
                 ),
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-                  decoration: BoxDecoration(color: statusColor.withAlpha(25), borderRadius: BorderRadius.circular(4)),
-                  child: Text(inv.paymentStatus.toUpperCase(), style: TextStyle(fontSize: 10, color: statusColor, fontWeight: FontWeight.bold)),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 8,
+                    vertical: 2,
+                  ),
+                  decoration: BoxDecoration(
+                    color: statusColor.withAlpha(25),
+                    borderRadius: BorderRadius.circular(4),
+                  ),
+                  child: Text(
+                    inv.paymentStatus.toUpperCase(),
+                    style: TextStyle(
+                      fontSize: 10,
+                      color: statusColor,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
                 ),
               ],
             ),
@@ -276,9 +415,15 @@ class _SalesScreenState extends ConsumerState<SalesScreen> {
             // Row 2: invoice# + date
             Row(
               children: [
-                Text(inv.invoiceNumber, style: TextStyle(fontSize: 13, color: Colors.grey.shade600)),
+                Text(
+                  inv.invoiceNumber,
+                  style: TextStyle(fontSize: 13, color: Colors.grey.shade600),
+                ),
                 const SizedBox(width: 12),
-                Text(DateFormat('dd MMM yyyy').format(inv.invoiceDate), style: TextStyle(fontSize: 12, color: Colors.grey.shade500)),
+                Text(
+                  DateFormat('dd MMM yyyy').format(inv.invoiceDate),
+                  style: TextStyle(fontSize: 12, color: Colors.grey.shade500),
+                ),
               ],
             ),
             const SizedBox(height: 8),
@@ -290,9 +435,22 @@ class _SalesScreenState extends ConsumerState<SalesScreen> {
                 Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text('Total: ${currencyFormat.format(inv.totalAmount)}', style: TextStyle(fontSize: 12, color: Colors.grey.shade600)),
+                    Text(
+                      'Total: ${currencyFormat.format(inv.totalAmount)}',
+                      style: TextStyle(
+                        fontSize: 12,
+                        color: Colors.grey.shade600,
+                      ),
+                    ),
                     if (inv.outstandingAmount > 0)
-                      Text('Due: ${currencyFormat.format(inv.outstandingAmount)}', style: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: Colors.red)),
+                      Text(
+                        'Due: ${currencyFormat.format(inv.outstandingAmount)}',
+                        style: const TextStyle(
+                          fontSize: 14,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.red,
+                        ),
+                      ),
                   ],
                 ),
                 Row(
@@ -304,7 +462,12 @@ class _SalesScreenState extends ConsumerState<SalesScreen> {
                         tooltip: 'Record Payment',
                         onPressed: () {
                           Navigator.of(context).push(
-                            MaterialPageRoute(builder: (_) => RecordPaymentScreen(invoiceType: 'sales', initialInvoice: inv)),
+                            MaterialPageRoute(
+                              builder: (_) => RecordPaymentScreen(
+                                invoiceType: 'sales',
+                                initialInvoice: inv,
+                              ),
+                            ),
                           );
                         },
                       ),
@@ -328,20 +491,32 @@ class _SalesScreenState extends ConsumerState<SalesScreen> {
       context: context,
       builder: (ctx) => AlertDialog(
         title: const Text('Delete Sales Record?'),
-        content: Text('Are you sure you want to delete ${inv.invoiceNumber} (${inv.partyName})? This cannot be undone.'),
+        content: Text(
+          'Are you sure you want to delete ${inv.invoiceNumber} (${inv.partyName})? This cannot be undone.',
+        ),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Cancel')),
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: const Text('Cancel'),
+          ),
           TextButton(
             onPressed: () async {
               Navigator.pop(ctx);
               try {
                 await ref.read(invoiceRepositoryProvider).deleteInvoice(inv.id);
                 if (mounted) {
-                  ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Record deleted.')));
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(content: Text('Record deleted.')),
+                  );
                 }
               } catch (e) {
                 if (mounted) {
-                  ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error: $e'), backgroundColor: Colors.red));
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text('Error: $e'),
+                      backgroundColor: Colors.red,
+                    ),
+                  );
                 }
               }
             },

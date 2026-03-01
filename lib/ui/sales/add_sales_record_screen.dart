@@ -13,7 +13,8 @@ class AddSalesRecordScreen extends ConsumerStatefulWidget {
   const AddSalesRecordScreen({super.key});
 
   @override
-  ConsumerState<AddSalesRecordScreen> createState() => _AddSalesRecordScreenState();
+  ConsumerState<AddSalesRecordScreen> createState() =>
+      _AddSalesRecordScreenState();
 }
 
 class _AddSalesRecordScreenState extends ConsumerState<AddSalesRecordScreen> {
@@ -40,7 +41,12 @@ class _AddSalesRecordScreenState extends ConsumerState<AddSalesRecordScreen> {
   Future<void> _save() async {
     if (!_formKey.currentState!.validate()) return;
     if (_selectedParty == null) {
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Please select a party'), backgroundColor: Colors.red));
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Please select a party'),
+          backgroundColor: Colors.red,
+        ),
+      );
       return;
     }
 
@@ -48,7 +54,9 @@ class _AddSalesRecordScreenState extends ConsumerState<AddSalesRecordScreen> {
 
     try {
       final totalAmount = double.parse(_amountController.text);
-      final advanceAmount = _advanceController.text.isNotEmpty ? double.parse(_advanceController.text) : 0.0;
+      final advanceAmount = _advanceController.text.isNotEmpty
+          ? double.parse(_advanceController.text)
+          : 0.0;
 
       if (advanceAmount > totalAmount) {
         throw Exception('Advance amount cannot exceed total amount.');
@@ -65,13 +73,19 @@ class _AddSalesRecordScreenState extends ConsumerState<AddSalesRecordScreen> {
         totalAmount: totalAmount,
         paidAmount: advanceAmount,
         outstandingAmount: totalAmount - advanceAmount,
-        paymentStatus: advanceAmount >= totalAmount ? 'paid' : (advanceAmount > 0 ? 'partial' : 'unpaid'),
-        description: _descriptionController.text.isNotEmpty ? _descriptionController.text : null,
+        paymentStatus: advanceAmount >= totalAmount
+            ? 'paid'
+            : (advanceAmount > 0 ? 'partial' : 'unpaid'),
+        description: _descriptionController.text.isNotEmpty
+            ? _descriptionController.text
+            : null,
         createdAt: DateTime.now(),
         updatedAt: DateTime.now(),
       );
 
-      final invoiceId = await ref.read(invoiceRepositoryProvider).createInvoice(invoice);
+      final invoiceId = await ref
+          .read(invoiceRepositoryProvider)
+          .createInvoice(invoice);
 
       // If advance payment, create a payment record
       if (advanceAmount > 0) {
@@ -96,16 +110,22 @@ class _AddSalesRecordScreenState extends ConsumerState<AddSalesRecordScreen> {
           ),
         ];
 
-        await ref.read(paymentRepositoryProvider).recordPayment(payment, allocations);
+        await ref
+            .read(paymentRepositoryProvider)
+            .recordPayment(payment, allocations);
       }
 
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Sales record added!')));
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(const SnackBar(content: Text('Sales record added!')));
         Navigator.pop(context);
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('$e'), backgroundColor: Colors.red));
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('$e'), backgroundColor: Colors.red),
+        );
       }
     } finally {
       if (mounted) setState(() => _isLoading = false);
@@ -130,7 +150,8 @@ class _AddSalesRecordScreenState extends ConsumerState<AddSalesRecordScreen> {
                     // Party selector
                     partiesAsync.when(
                       data: (parties) => _buildPartySelector(parties),
-                      loading: () => const Center(child: CircularProgressIndicator()),
+                      loading: () =>
+                          const Center(child: CircularProgressIndicator()),
                       error: (e, s) => Text('Error: $e'),
                     ),
                     const SizedBox(height: 16),
@@ -151,7 +172,9 @@ class _AddSalesRecordScreenState extends ConsumerState<AddSalesRecordScreen> {
                           labelText: 'Date *',
                           prefixIcon: Icon(Icons.calendar_today, size: 18),
                         ),
-                        child: Text(DateFormat('dd MMM yyyy').format(_invoiceDate)),
+                        child: Text(
+                          DateFormat('dd MMM yyyy').format(_invoiceDate),
+                        ),
                       ),
                     ),
                     const SizedBox(height: 16),
@@ -164,12 +187,29 @@ class _AddSalesRecordScreenState extends ConsumerState<AddSalesRecordScreen> {
                           flex: 3,
                           child: DropdownButtonFormField<String>(
                             initialValue: _docType,
-                            decoration: const InputDecoration(labelText: 'Type', isDense: true),
+                            decoration: const InputDecoration(
+                              labelText: 'Type',
+                              isDense: true,
+                            ),
                             items: const [
-                              DropdownMenuItem(value: 'Invoice/Bill', child: Text('Invoice/Bill', style: TextStyle(fontSize: 12))),
-                              DropdownMenuItem(value: 'Challan No', child: Text('Challan No', style: TextStyle(fontSize: 12))),
+                              DropdownMenuItem(
+                                value: 'Invoice/Bill',
+                                child: Text(
+                                  'Invoice/Bill',
+                                  style: TextStyle(fontSize: 12),
+                                ),
+                              ),
+                              DropdownMenuItem(
+                                value: 'Challan No',
+                                child: Text(
+                                  'Challan No',
+                                  style: TextStyle(fontSize: 12),
+                                ),
+                              ),
                             ],
-                            onChanged: (val) { if (val != null) setState(() => _docType = val); },
+                            onChanged: (val) {
+                              if (val != null) setState(() => _docType = val);
+                            },
                           ),
                         ),
                         const SizedBox(width: 8),
@@ -177,8 +217,14 @@ class _AddSalesRecordScreenState extends ConsumerState<AddSalesRecordScreen> {
                           flex: 4,
                           child: TextFormField(
                             controller: _invoiceNumberController,
-                            decoration: const InputDecoration(labelText: 'Number *', prefixIcon: Icon(Icons.tag, size: 18), isDense: true),
-                            validator: (v) => (v == null || v.trim().isEmpty) ? 'Required' : null,
+                            decoration: const InputDecoration(
+                              labelText: 'Number *',
+                              prefixIcon: Icon(Icons.tag, size: 18),
+                              isDense: true,
+                            ),
+                            validator: (v) => (v == null || v.trim().isEmpty)
+                                ? 'Required'
+                                : null,
                           ),
                         ),
                       ],
@@ -188,8 +234,13 @@ class _AddSalesRecordScreenState extends ConsumerState<AddSalesRecordScreen> {
                     // Amount
                     TextFormField(
                       controller: _amountController,
-                      keyboardType: const TextInputType.numberWithOptions(decimal: true),
-                      style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
+                      keyboardType: const TextInputType.numberWithOptions(
+                        decimal: true,
+                      ),
+                      style: const TextStyle(
+                        fontSize: 22,
+                        fontWeight: FontWeight.bold,
+                      ),
                       decoration: const InputDecoration(
                         labelText: 'Amount *',
                         prefixText: '\u20b9 ',
@@ -197,7 +248,9 @@ class _AddSalesRecordScreenState extends ConsumerState<AddSalesRecordScreen> {
                       validator: (v) {
                         if (v == null || v.isEmpty) return 'Required';
                         final val = double.tryParse(v);
-                        if (val == null || val <= 0) return 'Enter valid amount';
+                        if (val == null || val <= 0) {
+                          return 'Enter valid amount';
+                        }
                         return null;
                       },
                     ),
@@ -206,7 +259,9 @@ class _AddSalesRecordScreenState extends ConsumerState<AddSalesRecordScreen> {
                     // Advance payment
                     TextFormField(
                       controller: _advanceController,
-                      keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                      keyboardType: const TextInputType.numberWithOptions(
+                        decimal: true,
+                      ),
                       decoration: const InputDecoration(
                         labelText: 'Advance Payment (optional)',
                         prefixText: '\u20b9 ',
@@ -215,7 +270,9 @@ class _AddSalesRecordScreenState extends ConsumerState<AddSalesRecordScreen> {
                       validator: (v) {
                         if (v != null && v.isNotEmpty) {
                           final val = double.tryParse(v);
-                          if (val == null || val < 0) return 'Enter valid amount';
+                          if (val == null || val < 0) {
+                            return 'Enter valid amount';
+                          }
                         }
                         return null;
                       },
@@ -239,7 +296,9 @@ class _AddSalesRecordScreenState extends ConsumerState<AddSalesRecordScreen> {
                         onPressed: _isLoading ? null : _save,
                         icon: const Icon(Icons.check_circle),
                         label: const Text('Save Sales Record'),
-                        style: ElevatedButton.styleFrom(padding: const EdgeInsets.symmetric(vertical: 16)),
+                        style: ElevatedButton.styleFrom(
+                          padding: const EdgeInsets.symmetric(vertical: 16),
+                        ),
                       ),
                     ),
                   ],
@@ -251,7 +310,8 @@ class _AddSalesRecordScreenState extends ConsumerState<AddSalesRecordScreen> {
 
   Widget _buildPartySelector(List<Party> parties) {
     return FormField<Party>(
-      validator: (_) => _selectedParty == null ? 'Please select a customer' : null,
+      validator: (_) =>
+          _selectedParty == null ? 'Please select a customer' : null,
       builder: (state) {
         return InkWell(
           onTap: () => _showPartySheet(parties, state),
@@ -264,7 +324,9 @@ class _AddSalesRecordScreenState extends ConsumerState<AddSalesRecordScreen> {
             ),
             child: Text(
               _selectedParty?.name ?? 'Select customer...',
-              style: TextStyle(color: _selectedParty == null ? Colors.grey.shade600 : null),
+              style: TextStyle(
+                color: _selectedParty == null ? Colors.grey.shade600 : null,
+              ),
             ),
           ),
         );
@@ -276,78 +338,122 @@ class _AddSalesRecordScreenState extends ConsumerState<AddSalesRecordScreen> {
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
-      shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(20))),
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
       builder: (ctx) {
         String search = '';
-        return StatefulBuilder(builder: (ctx, setSheetState) {
-          final filtered = parties.where((p) => p.name.toLowerCase().contains(search.toLowerCase())).toList();
-          return SafeArea(
-            child: SizedBox(
-              height: MediaQuery.of(context).size.height * 0.6,
-              child: Column(
-                children: [
-                  Padding(
-                    padding: const EdgeInsets.all(16),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        const Text('Select Customer', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-                        IconButton(icon: const Icon(Icons.close), onPressed: () => Navigator.pop(ctx)),
-                      ],
-                    ),
-                  ),
-
-                  // Search
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 16),
-                    child: TextField(
-                      decoration: const InputDecoration(hintText: 'Search...', prefixIcon: Icon(Icons.search)),
-                      onChanged: (val) => setSheetState(() => search = val),
-                    ),
-                  ),
-                  const SizedBox(height: 8),
-
-                  // Add new
-                  ListTile(
-                    leading: const Icon(Icons.add_circle, color: Colors.blue),
-                    title: const Text('Add New Customer', style: TextStyle(color: Colors.blue, fontWeight: FontWeight.bold)),
-                    onTap: () async {
-                      Navigator.pop(ctx);
-                      await Navigator.of(context).push(
-                        MaterialPageRoute(builder: (_) => const AddPartyScreen(initialType: 'customer')),
-                      );
-                    },
-                  ),
-                  const Divider(),
-
-                  // List
-                  Expanded(
-                    child: ListView.builder(
-                      itemCount: filtered.length,
-                      itemBuilder: (_, i) {
-                        final p = filtered[i];
-                        return ListTile(
-                          leading: CircleAvatar(
-                            backgroundColor: Theme.of(context).colorScheme.primary.withAlpha(25),
-                            foregroundColor: Theme.of(context).colorScheme.primary,
-                            child: Text(p.name.isNotEmpty ? p.name[0].toUpperCase() : '?'),
+        return StatefulBuilder(
+          builder: (ctx, setSheetState) {
+            final filtered = parties
+                .where(
+                  (p) => p.name.toLowerCase().contains(search.toLowerCase()),
+                )
+                .toList();
+            return SafeArea(
+              child: SizedBox(
+                height: MediaQuery.of(context).size.height * 0.6,
+                child: Column(
+                  children: [
+                    Padding(
+                      padding: const EdgeInsets.all(16),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          const Text(
+                            'Select Customer',
+                            style: TextStyle(
+                              fontSize: 18,
+                              fontWeight: FontWeight.bold,
+                            ),
                           ),
-                          title: Text(p.name, style: const TextStyle(fontWeight: FontWeight.bold)),
-                          subtitle: p.phoneNumber != null ? Text(p.phoneNumber!) : null,
-                          onTap: () {
-                            setState(() => _selectedParty = p);
-                            state.didChange(p);
-                            Navigator.pop(ctx);
-                          },
+                          IconButton(
+                            icon: const Icon(Icons.close),
+                            onPressed: () => Navigator.pop(ctx),
+                          ),
+                        ],
+                      ),
+                    ),
+
+                    // Search
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 16),
+                      child: TextField(
+                        decoration: const InputDecoration(
+                          hintText: 'Search...',
+                          prefixIcon: Icon(Icons.search),
+                        ),
+                        onChanged: (val) => setSheetState(() => search = val),
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+
+                    // Add new
+                    ListTile(
+                      leading: const Icon(Icons.add_circle, color: Colors.blue),
+                      title: const Text(
+                        'Add New Customer',
+                        style: TextStyle(
+                          color: Colors.blue,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      onTap: () async {
+                        Navigator.pop(ctx);
+                        await Navigator.of(context).push(
+                          MaterialPageRoute(
+                            builder: (_) =>
+                                const AddPartyScreen(initialType: 'customer'),
+                          ),
                         );
                       },
                     ),
-                  ),
-                ],
+                    const Divider(),
+
+                    // List
+                    Expanded(
+                      child: ListView.builder(
+                        itemCount: filtered.length,
+                        itemBuilder: (_, i) {
+                          final p = filtered[i];
+                          return ListTile(
+                            leading: CircleAvatar(
+                              backgroundColor: Theme.of(
+                                context,
+                              ).colorScheme.primary.withAlpha(25),
+                              foregroundColor: Theme.of(
+                                context,
+                              ).colorScheme.primary,
+                              child: Text(
+                                p.name.isNotEmpty
+                                    ? p.name[0].toUpperCase()
+                                    : '?',
+                              ),
+                            ),
+                            title: Text(
+                              p.name,
+                              style: const TextStyle(
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                            subtitle: p.phoneNumber != null
+                                ? Text(p.phoneNumber!)
+                                : null,
+                            onTap: () {
+                              setState(() => _selectedParty = p);
+                              state.didChange(p);
+                              Navigator.pop(ctx);
+                            },
+                          );
+                        },
+                      ),
+                    ),
+                  ],
+                ),
               ),
-            ),
-          );
-        });
+            );
+          },
+        );
       },
     );
   }

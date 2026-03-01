@@ -14,14 +14,14 @@ class ProfileScreen extends ConsumerWidget {
     final userAsync = ref.watch(appUserProvider);
 
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Profile'),
-      ),
+      appBar: AppBar(title: const Text('Profile')),
       body: userAsync.when(
         data: (appUser) {
           final displayName = appUser?.displayName ?? 'User Name';
           final email = appUser?.email ?? 'Loading...';
-          final initial = displayName.isNotEmpty ? displayName[0].toUpperCase() : '?';
+          final initial = displayName.isNotEmpty
+              ? displayName[0].toUpperCase()
+              : '?';
 
           return ListView(
             children: [
@@ -36,57 +36,70 @@ class ProfileScreen extends ConsumerWidget {
               Center(
                 child: Text(
                   displayName,
-                  style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                  style: const TextStyle(
+                    fontSize: 20,
+                    fontWeight: FontWeight.bold,
+                  ),
                 ),
               ),
               Center(
-                child: Text(
-                  email,
-                  style: const TextStyle(color: Colors.grey),
-                ),
+                child: Text(email, style: const TextStyle(color: Colors.grey)),
               ),
-          const SizedBox(height: 32),
-          ListTile(
-            leading: const Icon(Icons.person_outline),
-            title: const Text('Edit Profile'),
-            trailing: const Icon(Icons.chevron_right),
-            onTap: () {
-               Navigator.of(context).push(MaterialPageRoute(builder: (_) => const EditProfileScreen()));
-            },
-          ),
-          ListTile(
-            leading: const Icon(Icons.settings_outlined),
-            title: const Text('Business Settings'),
-            trailing: const Icon(Icons.chevron_right),
-            onTap: () {
-               Navigator.of(context).push(MaterialPageRoute(builder: (_) => const BusinessSettingsScreen()));
-            },
-          ),
-          ListTile(
-            leading: const Icon(Icons.color_lens_outlined),
-            title: const Text('Appearance'),
-            trailing: const Icon(Icons.chevron_right),
-            onTap: () {
-               Navigator.of(context).push(MaterialPageRoute(builder: (_) => const AppearanceScreen()));
-            },
-          ),
-          const Divider(),
-          ListTile(
-            leading: const Icon(Icons.logout, color: Colors.red),
-            title: const Text('Log Out', style: TextStyle(color: Colors.red)),
-            onTap: () async {
-              await ref.read(authRepositoryProvider).signOut();
-              if (context.mounted) {
-                context.go('/login');
-              }
-            },
-          ),
-        ],
-      );
-    },
-    loading: () => const Center(child: CircularProgressIndicator()),
-    error: (e, st) => Center(child: Text('Error: $e')),
-    ),
-  );
-}
+              const SizedBox(height: 32),
+              ListTile(
+                leading: const Icon(Icons.person_outline),
+                title: const Text('Edit Profile'),
+                trailing: const Icon(Icons.chevron_right),
+                onTap: () {
+                  Navigator.of(context).push(
+                    MaterialPageRoute(
+                      builder: (_) => const EditProfileScreen(),
+                    ),
+                  );
+                },
+              ),
+              ListTile(
+                leading: const Icon(Icons.settings_outlined),
+                title: const Text('Business Settings'),
+                trailing: const Icon(Icons.chevron_right),
+                onTap: () {
+                  Navigator.of(context).push(
+                    MaterialPageRoute(
+                      builder: (_) => const BusinessSettingsScreen(),
+                    ),
+                  );
+                },
+              ),
+              ListTile(
+                leading: const Icon(Icons.color_lens_outlined),
+                title: const Text('Appearance'),
+                trailing: const Icon(Icons.chevron_right),
+                onTap: () {
+                  Navigator.of(context).push(
+                    MaterialPageRoute(builder: (_) => const AppearanceScreen()),
+                  );
+                },
+              ),
+              const Divider(),
+              ListTile(
+                leading: const Icon(Icons.logout, color: Colors.red),
+                title: const Text(
+                  'Log Out',
+                  style: TextStyle(color: Colors.red),
+                ),
+                onTap: () async {
+                  await ref.read(authRepositoryProvider).signOut();
+                  if (context.mounted) {
+                    context.go('/login');
+                  }
+                },
+              ),
+            ],
+          );
+        },
+        loading: () => const Center(child: CircularProgressIndicator()),
+        error: (e, st) => Center(child: Text('Error: $e')),
+      ),
+    );
+  }
 }

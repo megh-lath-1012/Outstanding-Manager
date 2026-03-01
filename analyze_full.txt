@@ -1,0 +1,17 @@
+Analyzing Outstanding Management App...                         
+
+warning • The value of the local variable 'file' isn't used • lib/services/export_service.dart:84:13 • unused_local_variable
+   info • Unnecessary use of multiple underscores • lib/ui/ledger/party_ledger_screen.dart:185:39 • unnecessary_underscores
+   info • 'groupValue' is deprecated and shouldn't be used. Use a RadioGroup ancestor to manage group value instead. This feature was deprecated after v3.32.0-0.0.pre • lib/ui/parties/add_party_screen.dart:154:31 • deprecated_member_use
+   info • 'onChanged' is deprecated and shouldn't be used. Use RadioGroup to handle value change instead. This feature was deprecated after v3.32.0-0.0.pre • lib/ui/parties/add_party_screen.dart:156:31 • deprecated_member_use
+   info • 'groupValue' is deprecated and shouldn't be used. Use a RadioGroup ancestor to manage group value instead. This feature was deprecated after v3.32.0-0.0.pre • lib/ui/parties/add_party_screen.dart:163:31 • deprecated_member_use
+   info • 'onChanged' is deprecated and shouldn't be used. Use RadioGroup to handle value change instead. This feature was deprecated after v3.32.0-0.0.pre • lib/ui/parties/add_party_screen.dart:165:31 • deprecated_member_use
+   info • 'value' is deprecated and shouldn't be used. Use initialValue instead. This will set the initial value for the form field. This feature was deprecated after v3.33.0-1.0.pre • lib/ui/payments/add_payment_screen.dart:319:29 • deprecated_member_use
+   info • 'value' is deprecated and shouldn't be used. Use initialValue instead. This will set the initial value for the form field. This feature was deprecated after v3.33.0-1.0.pre • lib/ui/payments/record_payment_screen.dart:296:29 • deprecated_member_use
+   info • 'value' is deprecated and shouldn't be used. Use initialValue instead. This will set the initial value for the form field. This feature was deprecated after v3.33.0-1.0.pre • lib/ui/profile/business_settings_screen.dart:140:21 • deprecated_member_use
+   info • 'Share' is deprecated and shouldn't be used. Use SharePlus instead • lib/ui/purchases/purchases_screen.dart:139:27 • deprecated_member_use
+   info • 'shareXFiles' is deprecated and shouldn't be used. Use SharePlus.instance.share() instead • lib/ui/purchases/purchases_screen.dart:139:33 • deprecated_member_use
+   info • 'Share' is deprecated and shouldn't be used. Use SharePlus instead • lib/ui/sales/sales_screen.dart:138:27 • deprecated_member_use
+   info • 'shareXFiles' is deprecated and shouldn't be used. Use SharePlus.instance.share() instead • lib/ui/sales/sales_screen.dart:138:33 • deprecated_member_use
+
+13 issues found. (ran in 3.1s)

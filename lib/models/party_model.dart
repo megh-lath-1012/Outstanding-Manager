@@ -13,7 +13,7 @@ class Party {
   final double openingBalance;
   final DateTime createdAt;
   final DateTime updatedAt;
-  
+
   Party({
     required this.id,
     required this.userId,
@@ -28,7 +28,7 @@ class Party {
     required this.createdAt,
     required this.updatedAt,
   });
-  
+
   factory Party.fromFirestore(DocumentSnapshot doc) {
     final data = doc.data() as Map<String, dynamic>;
     return Party(
@@ -46,7 +46,7 @@ class Party {
       updatedAt: (data['updatedAt'] as Timestamp?)?.toDate() ?? DateTime.now(),
     );
   }
-  
+
   Map<String, dynamic> toMap() {
     return {
       'userId': userId,

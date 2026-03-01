@@ -6,9 +6,9 @@ class AppTheme {
   static const Color primaryColor = Color(0xFFFF385C);
   static const Color primaryLight = Color(0xFFFF5A75);
   static const Color primaryDark = Color(0xFFE31C5F);
-  
+
   static const Color secondaryColor = Color(0xFF00A699);
-  
+
   // Status Colors
   static const Color success = Color(0xFF00A699);
   static const Color warning = Color(0xFFFFA726);
@@ -35,7 +35,6 @@ class AppTheme {
         primary: primaryColor,
         secondary: secondaryColor,
         surface: cardLight,
-        background: backgroundLight,
         error: error,
       ),
       scaffoldBackgroundColor: backgroundLight,
@@ -58,23 +57,22 @@ class AppTheme {
         style: ElevatedButton.styleFrom(
           backgroundColor: primaryColor,
           foregroundColor: Colors.white,
-          shape: RoundedRectangleBorder(
-             borderRadius: BorderRadius.circular(8),
-          ),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
           padding: const EdgeInsets.symmetric(vertical: 16),
         ),
       ),
       cardTheme: CardThemeData(
         color: cardLight,
         elevation: 2,
-        shape: RoundedRectangleBorder(
-             borderRadius: BorderRadius.circular(12),
-        ),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       ),
       inputDecorationTheme: InputDecorationTheme(
         filled: true,
         fillColor: Colors.white,
-        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+        contentPadding: const EdgeInsets.symmetric(
+          horizontal: 16,
+          vertical: 16,
+        ),
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(8),
           borderSide: BorderSide(color: Colors.grey.shade300),
@@ -99,15 +97,13 @@ class AppTheme {
         primary: primaryColor,
         secondary: secondaryColor,
         surface: cardDark,
-        background: backgroundDark,
         error: error,
       ),
       scaffoldBackgroundColor: backgroundDark,
-      textTheme: GoogleFonts.montserratTextTheme(ThemeData.dark().textTheme).apply(
-        bodyColor: textPrimaryDark,
-        displayColor: textPrimaryDark,
-      ),
-       appBarTheme: const AppBarTheme(
+      textTheme: GoogleFonts.montserratTextTheme(
+        ThemeData.dark().textTheme,
+      ).apply(bodyColor: textPrimaryDark, displayColor: textPrimaryDark),
+      appBarTheme: const AppBarTheme(
         backgroundColor: Colors.transparent,
         elevation: 0,
         centerTitle: true,
@@ -122,23 +118,22 @@ class AppTheme {
         style: ElevatedButton.styleFrom(
           backgroundColor: primaryColor,
           foregroundColor: Colors.white,
-          shape: RoundedRectangleBorder(
-             borderRadius: BorderRadius.circular(8),
-          ),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
           padding: const EdgeInsets.symmetric(vertical: 16),
         ),
       ),
       cardTheme: CardThemeData(
         color: cardDark,
         elevation: 2,
-        shape: RoundedRectangleBorder(
-             borderRadius: BorderRadius.circular(12),
-        ),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       ),
       inputDecorationTheme: InputDecorationTheme(
         filled: true,
         fillColor: cardDark,
-        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+        contentPadding: const EdgeInsets.symmetric(
+          horizontal: 16,
+          vertical: 16,
+        ),
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(8),
           borderSide: BorderSide(color: Colors.grey.shade700),

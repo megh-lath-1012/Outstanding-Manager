@@ -8,10 +8,7 @@ class PaymentQuery {
   final String paymentType;
   final String? partyId;
 
-  PaymentQuery({
-    required this.paymentType,
-    this.partyId,
-  });
+  PaymentQuery({required this.paymentType, this.partyId});
 
   @override
   bool operator ==(Object other) =>
@@ -23,25 +20,28 @@ class PaymentQuery {
   int get hashCode => Object.hash(paymentType, partyId);
 }
 
-final paymentsProvider = StreamProvider.family<List<Payment>, PaymentQuery>((ref, query) {
+final paymentsProvider = StreamProvider.family<List<Payment>, PaymentQuery>((
+  ref,
+  query,
+) {
   final userDoc = ref.watch(userDocProvider);
   if (userDoc == null) return Stream.value([]);
 
   Query<Map<String, dynamic>> firestoreQuery = userDoc
-    .collection('payments')
-    .where('paymentType', isEqualTo: query.paymentType);
+      .collection('payments')
+      .where('paymentType', isEqualTo: query.paymentType);
 
   if (query.partyId != null) {
     firestoreQuery = firestoreQuery.where('partyId', isEqualTo: query.partyId);
   }
 
-  return firestoreQuery
-    .snapshots()
-    .map((snapshot) {
-      final payments = snapshot.docs.map((doc) => Payment.fromFirestore(doc)).toList();
-      payments.sort((a, b) => b.paymentDate.compareTo(a.paymentDate));
-      return payments;
-    });
+  return firestoreQuery.snapshots().map((snapshot) {
+    final payments = snapshot.docs
+        .map((doc) => Payment.fromFirestore(doc))
+        .toList();
+    payments.sort((a, b) => b.paymentDate.compareTo(a.paymentDate));
+    return payments;
+  });
 });
 
 final paymentRepositoryProvider = Provider<PaymentRepository>((ref) {
@@ -56,7 +56,10 @@ class PaymentRepository {
   DocumentReference? get _userDoc => _ref.read(userDocProvider);
   InvoiceRepository get _invoiceRepo => _ref.read(invoiceRepositoryProvider);
 
-  Future<String> recordPayment(Payment payment, List<PaymentAllocation> allocations) async {
+  Future<String> recordPayment(
+    Payment payment,
+    List<PaymentAllocation> allocations,
+  ) async {
     final userDoc = _userDoc;
     if (userDoc == null) throw Exception('Not authenticated');
 
@@ -69,7 +72,10 @@ class PaymentRepository {
         throw Exception('All allocated amounts must be greater than 0.');
       }
     }
-    double totalAllocated = allocations.fold(0.0, (s, a) => s + a.allocatedAmount);
+    double totalAllocated = allocations.fold(
+      0.0,
+      (s, a) => s + a.allocatedAmount,
+    );
     if ((totalAllocated - payment.totalAmount).abs() > 0.01) {
       throw Exception('Total allocated must equal total payment amount.');
     }
@@ -90,7 +96,10 @@ class PaymentRepository {
 
     // Update each invoice's paid/outstanding
     for (var allocation in allocations) {
-      await _invoiceRepo.updateInvoiceStatus(allocation.invoiceId, allocation.allocatedAmount);
+      await _invoiceRepo.updateInvoiceStatus(
+        allocation.invoiceId,
+        allocation.allocatedAmount,
+      );
     }
 
     return docRef.id;
@@ -102,10 +111,10 @@ class PaymentRepository {
 
     // Get allocations
     final allocationsSnapshot = await userDoc
-      .collection('payments')
-      .doc(paymentId)
-      .collection('allocations')
-      .get();
+        .collection('payments')
+        .doc(paymentId)
+        .collection('allocations')
+        .get();
 
     // Reverse each allocation on its invoice
     for (var allocDoc in allocationsSnapshot.docs) {

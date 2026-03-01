@@ -13,9 +13,13 @@ class PaymentsScreen extends ConsumerStatefulWidget {
   ConsumerState<PaymentsScreen> createState() => _PaymentsScreenState();
 }
 
-class _PaymentsScreenState extends ConsumerState<PaymentsScreen> with SingleTickerProviderStateMixin {
+class _PaymentsScreenState extends ConsumerState<PaymentsScreen>
+    with SingleTickerProviderStateMixin {
   late TabController _tabController;
-  final currencyFormat = NumberFormat.currency(locale: 'en_IN', symbol: '\u20b9');
+  final currencyFormat = NumberFormat.currency(
+    locale: 'en_IN',
+    symbol: '\u20b9',
+  );
 
   @override
   void initState() {
@@ -47,10 +51,7 @@ class _PaymentsScreenState extends ConsumerState<PaymentsScreen> with SingleTick
       ),
       body: TabBarView(
         controller: _tabController,
-        children: [
-          _buildPaymentList('receipt'),
-          _buildPaymentList('payment'),
-        ],
+        children: [_buildPaymentList('receipt'), _buildPaymentList('payment')],
       ),
       floatingActionButton: FloatingActionButton(
         backgroundColor: Theme.of(context).colorScheme.primary,
@@ -59,9 +60,9 @@ class _PaymentsScreenState extends ConsumerState<PaymentsScreen> with SingleTick
         onPressed: () {
           Navigator.of(context).push(
             MaterialPageRoute(
-               builder: (_) => AddPaymentScreen(
-                  paymentType: _tabController.index == 0 ? 'receipt' : 'payment',
-               )
+              builder: (_) => AddPaymentScreen(
+                paymentType: _tabController.index == 0 ? 'receipt' : 'payment',
+              ),
             ),
           );
         },
@@ -80,11 +81,19 @@ class _PaymentsScreenState extends ConsumerState<PaymentsScreen> with SingleTick
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                Icon(Icons.payments_outlined, size: 80, color: Colors.grey.shade300),
+                Icon(
+                  Icons.payments_outlined,
+                  size: 80,
+                  color: Colors.grey.shade300,
+                ),
                 const SizedBox(height: 16),
                 Text(
-                  paymentType == 'receipt' ? 'No receipts yet' : 'No payments yet',
-                  style: Theme.of(context).textTheme.titleMedium?.copyWith(color: Colors.grey),
+                  paymentType == 'receipt'
+                      ? 'No receipts yet'
+                      : 'No payments yet',
+                  style: Theme.of(
+                    context,
+                  ).textTheme.titleMedium?.copyWith(color: Colors.grey),
                 ),
               ],
             ),
@@ -129,18 +138,27 @@ class _PaymentsScreenState extends ConsumerState<PaymentsScreen> with SingleTick
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   Text(
-                    DateFormat('dd MMM yyyy, hh:mm a').format(payment.paymentDate),
+                    DateFormat(
+                      'dd MMM yyyy, hh:mm a',
+                    ).format(payment.paymentDate),
                     style: TextStyle(color: Colors.grey.shade600, fontSize: 13),
                   ),
                   Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 8,
+                      vertical: 2,
+                    ),
                     decoration: BoxDecoration(
                       color: Colors.grey.shade200,
                       borderRadius: BorderRadius.circular(4),
                     ),
                     child: Text(
                       payment.paymentMethod.replaceAll('_', ' ').toUpperCase(),
-                      style: TextStyle(fontSize: 10, color: Colors.grey.shade700, fontWeight: FontWeight.bold),
+                      style: TextStyle(
+                        fontSize: 10,
+                        color: Colors.grey.shade700,
+                        fontWeight: FontWeight.bold,
+                      ),
                     ),
                   ),
                 ],
@@ -155,16 +173,23 @@ class _PaymentsScreenState extends ConsumerState<PaymentsScreen> with SingleTick
                       children: [
                         Text(
                           payment.partyName,
-                          style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+                          style: const TextStyle(
+                            fontWeight: FontWeight.bold,
+                            fontSize: 16,
+                          ),
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
                         ),
-                        if (payment.referenceNumber != null && payment.referenceNumber!.isNotEmpty)
+                        if (payment.referenceNumber != null &&
+                            payment.referenceNumber!.isNotEmpty)
                           Padding(
                             padding: const EdgeInsets.only(top: 4.0),
                             child: Text(
                               'Ref: ${payment.referenceNumber}',
-                              style: TextStyle(color: Colors.grey.shade500, fontSize: 12),
+                              style: TextStyle(
+                                color: Colors.grey.shade500,
+                                fontSize: 12,
+                              ),
                             ),
                           ),
                       ],
@@ -173,7 +198,7 @@ class _PaymentsScreenState extends ConsumerState<PaymentsScreen> with SingleTick
                   Text(
                     '$prefix ${currencyFormat.format(payment.totalAmount)}',
                     style: TextStyle(
-                      fontWeight: FontWeight.bold, 
+                      fontWeight: FontWeight.bold,
                       fontSize: 18,
                       color: amountColor,
                     ),
@@ -193,7 +218,9 @@ class _PaymentsScreenState extends ConsumerState<PaymentsScreen> with SingleTick
 
     showModalBottomSheet(
       context: context,
-      shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(20))),
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
       builder: (ctx) {
         return SafeArea(
           child: Padding(
@@ -208,9 +235,15 @@ class _PaymentsScreenState extends ConsumerState<PaymentsScreen> with SingleTick
                   children: [
                     Text(
                       isReceipt ? 'Receipt Details' : 'Payment Details',
-                      style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                      style: const TextStyle(
+                        fontSize: 20,
+                        fontWeight: FontWeight.bold,
+                      ),
                     ),
-                    IconButton(icon: const Icon(Icons.close), onPressed: () => Navigator.pop(ctx)),
+                    IconButton(
+                      icon: const Icon(Icons.close),
+                      onPressed: () => Navigator.pop(ctx),
+                    ),
                   ],
                 ),
                 const Divider(),
@@ -218,10 +251,23 @@ class _PaymentsScreenState extends ConsumerState<PaymentsScreen> with SingleTick
 
                 // Payment info
                 _detailRow(Icons.person, 'Party', payment.partyName),
-                _detailRow(Icons.calendar_today, 'Date', DateFormat('dd MMM yyyy').format(payment.paymentDate)),
-                _detailRow(Icons.account_balance_wallet, 'Method', payment.paymentMethod.replaceAll('_', ' ').toUpperCase()),
-                _detailRow(Icons.currency_rupee, 'Amount', currencyFormat.format(payment.totalAmount)),
-                if (payment.referenceNumber != null && payment.referenceNumber!.isNotEmpty)
+                _detailRow(
+                  Icons.calendar_today,
+                  'Date',
+                  DateFormat('dd MMM yyyy').format(payment.paymentDate),
+                ),
+                _detailRow(
+                  Icons.account_balance_wallet,
+                  'Method',
+                  payment.paymentMethod.replaceAll('_', ' ').toUpperCase(),
+                ),
+                _detailRow(
+                  Icons.currency_rupee,
+                  'Amount',
+                  currencyFormat.format(payment.totalAmount),
+                ),
+                if (payment.referenceNumber != null &&
+                    payment.referenceNumber!.isNotEmpty)
                   _detailRow(Icons.tag, 'Reference', payment.referenceNumber!),
                 if (payment.notes != null && payment.notes!.isNotEmpty)
                   _detailRow(Icons.notes, 'Notes', payment.notes!),
@@ -252,7 +298,10 @@ class _PaymentsScreenState extends ConsumerState<PaymentsScreen> with SingleTick
                           _confirmDeletePayment(payment);
                         },
                         icon: const Icon(Icons.delete, color: Colors.red),
-                        label: const Text('Delete', style: TextStyle(color: Colors.red)),
+                        label: const Text(
+                          'Delete',
+                          style: TextStyle(color: Colors.red),
+                        ),
                         style: OutlinedButton.styleFrom(
                           padding: const EdgeInsets.symmetric(vertical: 14),
                           side: const BorderSide(color: Colors.red),
@@ -277,8 +326,16 @@ class _PaymentsScreenState extends ConsumerState<PaymentsScreen> with SingleTick
         children: [
           Icon(icon, size: 18, color: Colors.grey.shade600),
           const SizedBox(width: 12),
-          Text('$label: ', style: TextStyle(color: Colors.grey.shade600, fontSize: 14)),
-          Expanded(child: Text(value, style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 14))),
+          Text(
+            '$label: ',
+            style: TextStyle(color: Colors.grey.shade600, fontSize: 14),
+          ),
+          Expanded(
+            child: Text(
+              value,
+              style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 14),
+            ),
+          ),
         ],
       ),
     );
@@ -311,7 +368,9 @@ class _PaymentsScreenState extends ConsumerState<PaymentsScreen> with SingleTick
     // Show a hint that they should delete the old one if they want to replace it
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-        content: const Text('Creating a new entry. Delete the old one after saving if needed.'),
+        content: const Text(
+          'Creating a new entry. Delete the old one after saving if needed.',
+        ),
         duration: const Duration(seconds: 4),
         action: SnackBarAction(
           label: 'Delete Old',
@@ -357,13 +416,18 @@ class _PaymentsScreenState extends ConsumerState<PaymentsScreen> with SingleTick
       await ref.read(paymentRepositoryProvider).deletePayment(payment.id);
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Payment deleted and invoice statuses reverted.')),
+          const SnackBar(
+            content: Text('Payment deleted and invoice statuses reverted.'),
+          ),
         );
       }
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error deleting: $e'), backgroundColor: Colors.red),
+          SnackBar(
+            content: Text('Error deleting: $e'),
+            backgroundColor: Colors.red,
+          ),
         );
       }
     }

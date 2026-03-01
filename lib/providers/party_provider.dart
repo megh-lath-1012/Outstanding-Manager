@@ -3,19 +3,24 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../models/party_model.dart';
 import 'firebase_providers.dart';
 
-final partiesProvider = StreamProvider.family<List<Party>, String>((ref, partyType) {
+final partiesProvider = StreamProvider.family<List<Party>, String>((
+  ref,
+  partyType,
+) {
   final userDoc = ref.watch(userDocProvider);
   if (userDoc == null) return Stream.value([]);
 
   return userDoc
-    .collection('parties')
-    .where('partyType', isEqualTo: partyType)
-    .snapshots()
-    .map((snapshot) {
-      final parties = snapshot.docs.map((doc) => Party.fromFirestore(doc)).toList();
-      parties.sort((a, b) => a.name.compareTo(b.name));
-      return parties;
-    });
+      .collection('parties')
+      .where('partyType', isEqualTo: partyType)
+      .snapshots()
+      .map((snapshot) {
+        final parties = snapshot.docs
+            .map((doc) => Party.fromFirestore(doc))
+            .toList();
+        parties.sort((a, b) => a.name.compareTo(b.name));
+        return parties;
+      });
 });
 
 /// Provider that returns ALL parties regardless of type
@@ -23,14 +28,13 @@ final allPartiesProvider = StreamProvider<List<Party>>((ref) {
   final userDoc = ref.watch(userDocProvider);
   if (userDoc == null) return Stream.value([]);
 
-  return userDoc
-    .collection('parties')
-    .snapshots()
-    .map((snapshot) {
-      final parties = snapshot.docs.map((doc) => Party.fromFirestore(doc)).toList();
-      parties.sort((a, b) => a.name.compareTo(b.name));
-      return parties;
-    });
+  return userDoc.collection('parties').snapshots().map((snapshot) {
+    final parties = snapshot.docs
+        .map((doc) => Party.fromFirestore(doc))
+        .toList();
+    parties.sort((a, b) => a.name.compareTo(b.name));
+    return parties;
+  });
 });
 
 final partyRepositoryProvider = Provider<PartyRepository>((ref) {
@@ -56,10 +60,14 @@ class PartyRepository {
         .get();
 
     final duplicate = existing.docs.any(
-      (doc) => (doc.data()['name'] as String? ?? '').toLowerCase() == party.name.toLowerCase(),
+      (doc) =>
+          (doc.data()['name'] as String? ?? '').toLowerCase() ==
+          party.name.toLowerCase(),
     );
     if (duplicate) {
-      throw Exception('A ${party.partyType} named "${party.name}" already exists.');
+      throw Exception(
+        'A ${party.partyType} named "${party.name}" already exists.',
+      );
     }
 
     final docRef = await userDoc.collection('parties').add(party.toMap());

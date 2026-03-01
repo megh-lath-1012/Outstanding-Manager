@@ -17,8 +17,10 @@ import '../parties/add_party_screen.dart';
 class AddPaymentScreen extends ConsumerStatefulWidget {
   /// Optional: pre-select a specific invoice (Flow 1)
   final Invoice? initialInvoice;
+
   /// Optional: pre-select a party (Flow 2)
   final Party? initialParty;
+
   /// Legacy compat — if set, overrides auto-detection
   final String? paymentType;
 
@@ -48,10 +50,18 @@ class _AddPaymentScreenState extends ConsumerState<AddPaymentScreen> {
   /// Map of invoiceId -> allocation details
   final Map<String, _InvoiceAllocationEntry> _allocations = {};
 
-  final currencyFormat = NumberFormat.currency(locale: 'en_IN', symbol: '\u20b9');
+  final currencyFormat = NumberFormat.currency(
+    locale: 'en_IN',
+    symbol: '\u20b9',
+  );
 
   static const List<String> _paymentMethods = [
-    'cash', 'bank_transfer', 'upi', 'cheque', 'card', 'other'
+    'cash',
+    'bank_transfer',
+    'upi',
+    'cheque',
+    'card',
+    'other',
   ];
 
   /// Derived from selected party's type
@@ -91,7 +101,9 @@ class _AddPaymentScreenState extends ConsumerState<AddPaymentScreen> {
       if (inv.outstandingAmount > 0) {
         _allocations[inv.id] = _InvoiceAllocationEntry(
           invoice: inv,
-          controller: TextEditingController(text: inv.outstandingAmount.toString()),
+          controller: TextEditingController(
+            text: inv.outstandingAmount.toString(),
+          ),
         );
         _recalculateTotal();
       }
@@ -150,24 +162,35 @@ class _AddPaymentScreenState extends ConsumerState<AddPaymentScreen> {
     for (var entry in _allocations.entries) {
       final amt = double.tryParse(entry.value.controller.text) ?? 0;
       if (amt <= 0) {
-        _showError('Allocated amount for ${entry.value.invoice.invoiceNumber} must be > 0.');
+        _showError(
+          'Allocated amount for ${entry.value.invoice.invoiceNumber} must be > 0.',
+        );
         return;
       }
       if (amt > entry.value.invoice.outstandingAmount + 0.01) {
-        _showError('Allocated amount for ${entry.value.invoice.invoiceNumber} exceeds outstanding (\u20b9${entry.value.invoice.outstandingAmount}).');
+        _showError(
+          'Allocated amount for ${entry.value.invoice.invoiceNumber} exceeds outstanding (\u20b9${entry.value.invoice.outstandingAmount}).',
+        );
         return;
       }
-      finalAllocations.add(PaymentAllocation(
-        invoiceId: entry.key,
-        invoiceNumber: entry.value.invoice.invoiceNumber,
-        allocatedAmount: amt,
-      ));
+      finalAllocations.add(
+        PaymentAllocation(
+          invoiceId: entry.key,
+          invoiceNumber: entry.value.invoice.invoiceNumber,
+          allocatedAmount: amt,
+        ),
+      );
     }
 
     // Rule 1: total allocated must equal total payment
-    final totalAlloc = finalAllocations.fold(0.0, (s, a) => s + a.allocatedAmount);
+    final totalAlloc = finalAllocations.fold(
+      0.0,
+      (s, a) => s + a.allocatedAmount,
+    );
     if ((_totalPayment - totalAlloc).abs() > 0.01) {
-      _showError('Total Allocated (\u20b9${totalAlloc.toStringAsFixed(2)}) must equal Total Payment (\u20b9${_totalPayment.toStringAsFixed(2)}).');
+      _showError(
+        'Total Allocated (\u20b9${totalAlloc.toStringAsFixed(2)}) must equal Total Payment (\u20b9${_totalPayment.toStringAsFixed(2)}).',
+      );
       return;
     }
 
@@ -185,17 +208,25 @@ class _AddPaymentScreenState extends ConsumerState<AddPaymentScreen> {
         paymentDate: _paymentDate,
         totalAmount: _totalPayment,
         paymentMethod: _paymentMethod,
-        referenceNumber: _referenceController.text.isNotEmpty ? _referenceController.text : null,
+        referenceNumber: _referenceController.text.isNotEmpty
+            ? _referenceController.text
+            : null,
         notes: _notesController.text.isNotEmpty ? _notesController.text : null,
         createdAt: DateTime.now(),
         updatedAt: DateTime.now(),
       );
 
-      await ref.read(paymentRepositoryProvider).recordPayment(payment, finalAllocations);
+      await ref
+          .read(paymentRepositoryProvider)
+          .recordPayment(payment, finalAllocations);
 
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('${_derivedPaymentType == 'receipt' ? 'Receipt' : 'Payment'} recorded successfully!')),
+          SnackBar(
+            content: Text(
+              '${_derivedPaymentType == 'receipt' ? 'Receipt' : 'Payment'} recorded successfully!',
+            ),
+          ),
         );
         Navigator.of(context).pop();
       }
@@ -207,13 +238,17 @@ class _AddPaymentScreenState extends ConsumerState<AddPaymentScreen> {
   }
 
   void _showError(String msg) {
-    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(msg), backgroundColor: Colors.red));
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(SnackBar(content: Text(msg), backgroundColor: Colors.red));
   }
 
   // ─── BUILD ───
   @override
   Widget build(BuildContext context) {
-    final typeLabel = _derivedPaymentType == 'receipt' ? 'Record Receipt' : 'Record Payment';
+    final typeLabel = _derivedPaymentType == 'receipt'
+        ? 'Record Receipt'
+        : 'Record Payment';
     final partyType = _partyFilterType;
     final partiesAsync = ref.watch(partiesProvider(partyType));
 
@@ -253,14 +288,21 @@ class _AddPaymentScreenState extends ConsumerState<AddPaymentScreen> {
                                 firstDate: DateTime(2000),
                                 lastDate: DateTime(2100),
                               );
-                              if (date != null) setState(() => _paymentDate = date);
+                              if (date != null) {
+                                setState(() => _paymentDate = date);
+                              }
                             },
                             child: InputDecorator(
                               decoration: const InputDecoration(
                                 labelText: 'Payment Date *',
-                                prefixIcon: Icon(Icons.calendar_today, size: 18),
+                                prefixIcon: Icon(
+                                  Icons.calendar_today,
+                                  size: 18,
+                                ),
                               ),
-                              child: Text(DateFormat('dd MMM yyyy').format(_paymentDate)),
+                              child: Text(
+                                DateFormat('dd MMM yyyy').format(_paymentDate),
+                              ),
                             ),
                           ),
                         ),
@@ -269,15 +311,27 @@ class _AddPaymentScreenState extends ConsumerState<AddPaymentScreen> {
                           child: DropdownButtonFormField<String>(
                             decoration: const InputDecoration(
                               labelText: 'Method *',
-                              prefixIcon: Icon(Icons.account_balance_wallet, size: 18),
+                              prefixIcon: Icon(
+                                Icons.account_balance_wallet,
+                                size: 18,
+                              ),
                             ),
-                            value: _paymentMethod,
-                            items: _paymentMethods.map((m) => DropdownMenuItem(
-                              value: m,
-                              child: Text(m.replaceAll('_', ' ').toUpperCase(), style: const TextStyle(fontSize: 13)),
-                            )).toList(),
+                            initialValue: _paymentMethod,
+                            items: _paymentMethods
+                                .map(
+                                  (m) => DropdownMenuItem(
+                                    value: m,
+                                    child: Text(
+                                      m.replaceAll('_', ' ').toUpperCase(),
+                                      style: const TextStyle(fontSize: 13),
+                                    ),
+                                  ),
+                                )
+                                .toList(),
                             onChanged: (val) {
-                              if (val != null) setState(() => _paymentMethod = val);
+                              if (val != null) {
+                                setState(() => _paymentMethod = val);
+                              }
                             },
                           ),
                         ),
@@ -301,8 +355,13 @@ class _AddPaymentScreenState extends ConsumerState<AddPaymentScreen> {
                     // ── 4. Total Payment Amount (prominent) ──
                     TextFormField(
                       controller: _amountController,
-                      keyboardType: const TextInputType.numberWithOptions(decimal: true),
-                      style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+                      keyboardType: const TextInputType.numberWithOptions(
+                        decimal: true,
+                      ),
+                      style: const TextStyle(
+                        fontSize: 24,
+                        fontWeight: FontWeight.bold,
+                      ),
                       decoration: const InputDecoration(
                         labelText: 'Total Payment Amount *',
                         prefixText: '\u20b9 ',
@@ -319,12 +378,20 @@ class _AddPaymentScreenState extends ConsumerState<AddPaymentScreen> {
                     // ── 5. Invoice Allocation Section ──
                     const Divider(),
                     const SizedBox(height: 8),
-                    Text('ALLOCATE TO INVOICES', style: Theme.of(context).textTheme.labelLarge?.copyWith(fontWeight: FontWeight.bold, letterSpacing: 1)),
+                    Text(
+                      'ALLOCATE TO INVOICES',
+                      style: Theme.of(context).textTheme.labelLarge?.copyWith(
+                        fontWeight: FontWeight.bold,
+                        letterSpacing: 1,
+                      ),
+                    ),
                     const SizedBox(height: 12),
 
                     if (_selectedParty != null) ...[
                       // Render each allocation card
-                      ..._allocations.entries.map((e) => _buildAllocationCard(e.key, e.value)),
+                      ..._allocations.entries.map(
+                        (e) => _buildAllocationCard(e.key, e.value),
+                      ),
                       const SizedBox(height: 8),
 
                       // "+ Add Another Invoice" button
@@ -373,8 +440,14 @@ class _AddPaymentScreenState extends ConsumerState<AddPaymentScreen> {
                       child: ElevatedButton.icon(
                         onPressed: _isLoading ? null : _save,
                         icon: const Icon(Icons.check_circle),
-                        label: Text(_derivedPaymentType == 'receipt' ? 'Record Receipt' : 'Record Payment'),
-                        style: ElevatedButton.styleFrom(padding: const EdgeInsets.symmetric(vertical: 16)),
+                        label: Text(
+                          _derivedPaymentType == 'receipt'
+                              ? 'Record Receipt'
+                              : 'Record Payment',
+                        ),
+                        style: ElevatedButton.styleFrom(
+                          padding: const EdgeInsets.symmetric(vertical: 16),
+                        ),
                       ),
                     ),
                     const SizedBox(height: 32),
@@ -386,35 +459,51 @@ class _AddPaymentScreenState extends ConsumerState<AddPaymentScreen> {
   }
 
   // ─── PARTY SELECTOR ───
-  Widget _buildPartySelector(AsyncValue<List<Party>> partiesAsync, String partyType) {
+  Widget _buildPartySelector(
+    AsyncValue<List<Party>> partiesAsync,
+    String partyType,
+  ) {
     if (_partyLocked && _selectedParty != null) {
       // Show locked/read-only card
       return InputDecorator(
         decoration: InputDecoration(
           labelText: partyType == 'customer' ? 'Customer' : 'Supplier',
-          prefixIcon: Icon(_derivedPaymentType == 'receipt' ? Icons.download : Icons.upload),
+          prefixIcon: Icon(
+            _derivedPaymentType == 'receipt' ? Icons.download : Icons.upload,
+          ),
         ),
-        child: Text(_selectedParty!.name, style: const TextStyle(fontWeight: FontWeight.bold)),
+        child: Text(
+          _selectedParty!.name,
+          style: const TextStyle(fontWeight: FontWeight.bold),
+        ),
       );
     }
 
     return partiesAsync.when(
       data: (parties) {
         return FormField<Party>(
-          validator: (_) => _selectedParty == null ? 'Please select a party' : null,
+          validator: (_) =>
+              _selectedParty == null ? 'Please select a party' : null,
           builder: (state) {
             return InkWell(
               onTap: () => _showPartySheet(context, parties, partyType, state),
               child: InputDecorator(
                 decoration: InputDecoration(
-                  labelText: '${partyType == 'customer' ? 'Received From' : 'Paid To'} *',
-                  prefixIcon: Icon(_derivedPaymentType == 'receipt' ? Icons.download : Icons.upload),
+                  labelText:
+                      '${partyType == 'customer' ? 'Received From' : 'Paid To'} *',
+                  prefixIcon: Icon(
+                    _derivedPaymentType == 'receipt'
+                        ? Icons.download
+                        : Icons.upload,
+                  ),
                   suffixIcon: const Icon(Icons.arrow_drop_down),
                   errorText: state.errorText,
                 ),
                 child: Text(
                   _selectedParty?.name ?? 'Choose...',
-                  style: TextStyle(color: _selectedParty == null ? Colors.grey.shade600 : null),
+                  style: TextStyle(
+                    color: _selectedParty == null ? Colors.grey.shade600 : null,
+                  ),
                 ),
               ),
             );
@@ -426,78 +515,136 @@ class _AddPaymentScreenState extends ConsumerState<AddPaymentScreen> {
     );
   }
 
-  void _showPartySheet(BuildContext context, List<Party> parties, String partyType, FormFieldState<Party> state) {
+  void _showPartySheet(
+    BuildContext context,
+    List<Party> parties,
+    String partyType,
+    FormFieldState<Party> state,
+  ) {
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
-      shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(20))),
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
       builder: (ctx) {
         String searchQuery = '';
-        return StatefulBuilder(builder: (ctx, setModalState) {
-          final filtered = parties.where((p) => p.name.toLowerCase().contains(searchQuery.toLowerCase())).toList();
-          return SafeArea(
-            child: SizedBox(
-              height: MediaQuery.of(context).size.height * 0.6,
-              child: Column(
-                children: [
-                  Padding(
-                    padding: const EdgeInsets.all(16),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Text('Select ${partyType == 'customer' ? 'Customer' : 'Supplier'}', style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-                        IconButton(icon: const Icon(Icons.close), onPressed: () => Navigator.pop(ctx)),
-                      ],
-                    ),
-                  ),
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 16),
-                    child: TextField(
-                      decoration: const InputDecoration(hintText: 'Search...', prefixIcon: Icon(Icons.search), contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 0)),
-                      onChanged: (val) => setModalState(() => searchQuery = val),
-                    ),
-                  ),
-                  const SizedBox(height: 8),
-                  ListTile(
-                    leading: const Icon(Icons.add_circle, color: Colors.blue),
-                    title: Text('Add New ${partyType == 'customer' ? 'Customer' : 'Supplier'}', style: const TextStyle(color: Colors.blue, fontWeight: FontWeight.bold)),
-                    onTap: () async {
-                      Navigator.pop(ctx);
-                      await Navigator.of(context).push(MaterialPageRoute(builder: (_) => AddPartyScreen(initialType: partyType)));
-                    },
-                  ),
-                  const Divider(),
-                  Expanded(
-                    child: ListView.builder(
-                      itemCount: filtered.length,
-                      itemBuilder: (_, i) {
-                        final p = filtered[i];
-                        return ListTile(
-                          leading: CircleAvatar(
-                            backgroundColor: Theme.of(context).colorScheme.primary.withAlpha(25),
-                            foregroundColor: Theme.of(context).colorScheme.primary,
-                            child: Text(p.name.isNotEmpty ? p.name[0].toUpperCase() : '?'),
+        return StatefulBuilder(
+          builder: (ctx, setModalState) {
+            final filtered = parties
+                .where(
+                  (p) =>
+                      p.name.toLowerCase().contains(searchQuery.toLowerCase()),
+                )
+                .toList();
+            return SafeArea(
+              child: SizedBox(
+                height: MediaQuery.of(context).size.height * 0.6,
+                child: Column(
+                  children: [
+                    Padding(
+                      padding: const EdgeInsets.all(16),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Text(
+                            'Select ${partyType == 'customer' ? 'Customer' : 'Supplier'}',
+                            style: const TextStyle(
+                              fontSize: 18,
+                              fontWeight: FontWeight.bold,
+                            ),
                           ),
-                          title: Text(p.name, style: const TextStyle(fontWeight: FontWeight.bold)),
-                          subtitle: p.phoneNumber != null ? Text(p.phoneNumber!) : null,
-                          onTap: () {
-                            setState(() {
-                              _selectedParty = p;
-                              _allocations.clear(); // Reset allocations on party change
-                              _amountController.clear();
-                            });
-                            state.didChange(p);
-                            Navigator.pop(ctx);
-                          },
+                          IconButton(
+                            icon: const Icon(Icons.close),
+                            onPressed: () => Navigator.pop(ctx),
+                          ),
+                        ],
+                      ),
+                    ),
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 16),
+                      child: TextField(
+                        decoration: const InputDecoration(
+                          hintText: 'Search...',
+                          prefixIcon: Icon(Icons.search),
+                          contentPadding: EdgeInsets.symmetric(
+                            horizontal: 16,
+                            vertical: 0,
+                          ),
+                        ),
+                        onChanged: (val) =>
+                            setModalState(() => searchQuery = val),
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    ListTile(
+                      leading: const Icon(Icons.add_circle, color: Colors.blue),
+                      title: Text(
+                        'Add New ${partyType == 'customer' ? 'Customer' : 'Supplier'}',
+                        style: const TextStyle(
+                          color: Colors.blue,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      onTap: () async {
+                        Navigator.pop(ctx);
+                        await Navigator.of(context).push(
+                          MaterialPageRoute(
+                            builder: (_) =>
+                                AddPartyScreen(initialType: partyType),
+                          ),
                         );
                       },
                     ),
-                  ),
-                ],
+                    const Divider(),
+                    Expanded(
+                      child: ListView.builder(
+                        itemCount: filtered.length,
+                        itemBuilder: (_, i) {
+                          final p = filtered[i];
+                          return ListTile(
+                            leading: CircleAvatar(
+                              backgroundColor: Theme.of(
+                                context,
+                              ).colorScheme.primary.withAlpha(25),
+                              foregroundColor: Theme.of(
+                                context,
+                              ).colorScheme.primary,
+                              child: Text(
+                                p.name.isNotEmpty
+                                    ? p.name[0].toUpperCase()
+                                    : '?',
+                              ),
+                            ),
+                            title: Text(
+                              p.name,
+                              style: const TextStyle(
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                            subtitle: p.phoneNumber != null
+                                ? Text(p.phoneNumber!)
+                                : null,
+                            onTap: () {
+                              setState(() {
+                                _selectedParty = p;
+                                _allocations
+                                    .clear(); // Reset allocations on party change
+                                _amountController.clear();
+                              });
+                              state.didChange(p);
+                              Navigator.pop(ctx);
+                            },
+                          );
+                        },
+                      ),
+                    ),
+                  ],
+                ),
               ),
-            ),
-          );
-        });
+            );
+          },
+        );
       },
     );
   }
@@ -510,7 +657,9 @@ class _AddPaymentScreenState extends ConsumerState<AddPaymentScreen> {
       margin: const EdgeInsets.only(bottom: 12),
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(12),
-        side: BorderSide(color: Theme.of(context).colorScheme.primary.withAlpha(80)),
+        side: BorderSide(
+          color: Theme.of(context).colorScheme.primary.withAlpha(80),
+        ),
       ),
       child: Padding(
         padding: const EdgeInsets.all(16),
@@ -521,7 +670,13 @@ class _AddPaymentScreenState extends ConsumerState<AddPaymentScreen> {
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Text(inv.invoiceNumber, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15)),
+                Text(
+                  inv.invoiceNumber,
+                  style: const TextStyle(
+                    fontWeight: FontWeight.bold,
+                    fontSize: 15,
+                  ),
+                ),
                 IconButton(
                   icon: const Icon(Icons.close, size: 20),
                   padding: EdgeInsets.zero,
@@ -545,16 +700,28 @@ class _AddPaymentScreenState extends ConsumerState<AddPaymentScreen> {
             const SizedBox(height: 2),
             Row(
               children: [
-                Text('Total: ${currencyFormat.format(inv.totalAmount)}', style: TextStyle(color: Colors.grey.shade600, fontSize: 12)),
+                Text(
+                  'Total: ${currencyFormat.format(inv.totalAmount)}',
+                  style: TextStyle(color: Colors.grey.shade600, fontSize: 12),
+                ),
                 const SizedBox(width: 16),
-                Text('Due: ${currencyFormat.format(inv.outstandingAmount)}', style: const TextStyle(color: Colors.orange, fontSize: 12, fontWeight: FontWeight.bold)),
+                Text(
+                  'Due: ${currencyFormat.format(inv.outstandingAmount)}',
+                  style: const TextStyle(
+                    color: Colors.orange,
+                    fontSize: 12,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
               ],
             ),
             const SizedBox(height: 12),
             // Allocation amount input
             TextFormField(
               controller: entry.controller,
-              keyboardType: const TextInputType.numberWithOptions(decimal: true),
+              keyboardType: const TextInputType.numberWithOptions(
+                decimal: true,
+              ),
               decoration: const InputDecoration(
                 labelText: 'Allocate',
                 prefixText: '\u20b9 ',
@@ -580,7 +747,11 @@ class _AddPaymentScreenState extends ConsumerState<AddPaymentScreen> {
 
     invoicesAsync.when(
       data: (invoices) {
-        final available = invoices.where((i) => i.outstandingAmount > 0 && !_allocations.containsKey(i.id)).toList();
+        final available = invoices
+            .where(
+              (i) => i.outstandingAmount > 0 && !_allocations.containsKey(i.id),
+            )
+            .toList();
 
         if (available.isEmpty) {
           _showError('No more unpaid invoices available for this party.');
@@ -589,7 +760,9 @@ class _AddPaymentScreenState extends ConsumerState<AddPaymentScreen> {
 
         showModalBottomSheet(
           context: context,
-          shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(20))),
+          shape: const RoundedRectangleBorder(
+            borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+          ),
           builder: (ctx) {
             return SafeArea(
               child: Column(
@@ -600,27 +773,45 @@ class _AddPaymentScreenState extends ConsumerState<AddPaymentScreen> {
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        const Text('Select Invoice', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-                        IconButton(icon: const Icon(Icons.close), onPressed: () => Navigator.pop(ctx)),
+                        const Text(
+                          'Select Invoice',
+                          style: TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                        IconButton(
+                          icon: const Icon(Icons.close),
+                          onPressed: () => Navigator.pop(ctx),
+                        ),
                       ],
                     ),
                   ),
                   const Divider(height: 1),
-                  ...available.map((inv) => ListTile(
-                    title: Text(inv.invoiceNumber, style: const TextStyle(fontWeight: FontWeight.bold)),
-                    subtitle: Text('Due: ${currencyFormat.format(inv.outstandingAmount)} • ${DateFormat('dd MMM').format(inv.invoiceDate)}'),
-                    trailing: const Icon(Icons.add_circle_outline),
-                    onTap: () {
-                      setState(() {
-                        _allocations[inv.id] = _InvoiceAllocationEntry(
-                          invoice: inv,
-                          controller: TextEditingController(text: inv.outstandingAmount.toString()),
-                        );
-                        _recalculateTotal();
-                      });
-                      Navigator.pop(ctx);
-                    },
-                  )),
+                  ...available.map(
+                    (inv) => ListTile(
+                      title: Text(
+                        inv.invoiceNumber,
+                        style: const TextStyle(fontWeight: FontWeight.bold),
+                      ),
+                      subtitle: Text(
+                        'Due: ${currencyFormat.format(inv.outstandingAmount)} • ${DateFormat('dd MMM').format(inv.invoiceDate)}',
+                      ),
+                      trailing: const Icon(Icons.add_circle_outline),
+                      onTap: () {
+                        setState(() {
+                          _allocations[inv.id] = _InvoiceAllocationEntry(
+                            invoice: inv,
+                            controller: TextEditingController(
+                              text: inv.outstandingAmount.toString(),
+                            ),
+                          );
+                          _recalculateTotal();
+                        });
+                        Navigator.pop(ctx);
+                      },
+                    ),
+                  ),
                   const SizedBox(height: 16),
                 ],
               ),
@@ -641,7 +832,9 @@ class _AddPaymentScreenState extends ConsumerState<AddPaymentScreen> {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
       decoration: BoxDecoration(
-        color: isBalanced ? Colors.green.withAlpha(20) : Colors.orange.withAlpha(20),
+        color: isBalanced
+            ? Colors.green.withAlpha(20)
+            : Colors.orange.withAlpha(20),
         borderRadius: BorderRadius.circular(12),
         border: Border.all(color: isBalanced ? Colors.green : Colors.orange),
       ),
@@ -651,8 +844,14 @@ class _AddPaymentScreenState extends ConsumerState<AddPaymentScreen> {
           Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text('Total Allocated: ${currencyFormat.format(allocated)}', style: const TextStyle(fontWeight: FontWeight.bold)),
-              Text('Remaining: ${currencyFormat.format(_remaining)}', style: TextStyle(color: Colors.grey.shade700, fontSize: 13)),
+              Text(
+                'Total Allocated: ${currencyFormat.format(allocated)}',
+                style: const TextStyle(fontWeight: FontWeight.bold),
+              ),
+              Text(
+                'Remaining: ${currencyFormat.format(_remaining)}',
+                style: TextStyle(color: Colors.grey.shade700, fontSize: 13),
+              ),
             ],
           ),
           Icon(
@@ -671,8 +870,5 @@ class _InvoiceAllocationEntry {
   final Invoice invoice;
   final TextEditingController controller;
 
-  _InvoiceAllocationEntry({
-    required this.invoice,
-    required this.controller,
-  });
+  _InvoiceAllocationEntry({required this.invoice, required this.controller});
 }
