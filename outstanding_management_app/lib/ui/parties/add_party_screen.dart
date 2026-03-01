@@ -206,13 +206,40 @@ class _AddPartyScreenState extends ConsumerState<AddPartyScreen> {
                     ),
                     const SizedBox(height: 16),
 
-                    TextFormField(
-                      controller: _balanceController,
-                      keyboardType: const TextInputType.numberWithOptions(decimal: true, signed: true),
-                      decoration: const InputDecoration(
-                         labelText: 'Opening Balance',
-                         prefixText: '₹ ',
-                         helperText: 'Positive = To Collect, Negative = To Pay',
+                    Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Expanded(
+                          child: TextFormField(
+                            controller: _balanceController,
+                            keyboardType: const TextInputType.numberWithOptions(decimal: true, signed: true),
+                            decoration: const InputDecoration(
+                               labelText: 'Opening Balance',
+                               prefixText: '₹ ',
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 8),
+                    Container(
+                      padding: const EdgeInsets.all(12),
+                      decoration: BoxDecoration(
+                        color: Colors.blue.withOpacity(0.05),
+                        borderRadius: BorderRadius.circular(8),
+                        border: Border.all(color: Colors.blue.withOpacity(0.2)),
+                      ),
+                      child: const Row(
+                        children: [
+                          Icon(Icons.info_outline, color: Colors.blue, size: 20),
+                          SizedBox(width: 8),
+                          Expanded(
+                            child: Text(
+                              'Enter a Positive (+) amount if you need to COLLECT money from them. \nEnter a Negative (-) amount if you need to PAY money to them.',
+                              style: TextStyle(fontSize: 12, color: Colors.blueGrey),
+                            ),
+                          ),
+                        ],
                       ),
                     ),
                     const SizedBox(height: 16),

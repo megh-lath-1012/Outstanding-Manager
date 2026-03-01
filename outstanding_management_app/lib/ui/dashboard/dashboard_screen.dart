@@ -1,66 +1,56 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:intl/intl.dart';
+import '../../providers/dashboard_provider.dart';
+import '../../models/dashboard_metrics.dart';
+import '../../models/invoice_model.dart';
+import '../../models/payment_model.dart';
 
 class DashboardScreen extends ConsumerWidget {
   const DashboardScreen({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final metricsAsync = ref.watch(dashboardMetricsProvider);
+    final recentAsync = ref.watch(recentActivityProvider);
+    final currencyFormat = NumberFormat.currency(locale: 'en_IN', symbol: '\u20b9');
+
     return Scaffold(
       appBar: AppBar(
         title: const Text('Dashboard'),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.notifications_outlined),
-            onPressed: () {},
-          ),
-        ],
       ),
       body: SingleChildScrollView(
-        padding: const EdgeInsets.all(16.0),
+        padding: const EdgeInsets.all(16),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Metrics grid
-            GridView.count(
-              shrinkWrap: true,
-              physics: const NeverScrollableScrollPhysics(),
-              crossAxisCount: 2,
-              crossAxisSpacing: 16,
-              mainAxisSpacing: 16,
-              childAspectRatio: 1.5,
-              children: [
-                _buildMetricCard(context, 'Total Sales', '₹0.00', Icons.trending_up, Colors.green),
-                _buildMetricCard(context, 'Total Purchases', '₹0.00', Icons.trending_down, Colors.red),
-                _buildMetricCard(context, 'Gross Profit', '₹0.00', Icons.account_balance, Theme.of(context).colorScheme.primary),
-                _buildMetricCard(context, 'Net Outstanding', '₹0.00', Icons.swap_horiz, Colors.orange),
-              ],
+            // Metrics cards
+            metricsAsync.when(
+              data: (metrics) => _buildMetrics(context, metrics, currencyFormat),
+              loading: () => const Center(child: CircularProgressIndicator()),
+              error: (e, s) => Text('Error: $e'),
             ),
-            
-            const SizedBox(height: 32),
-            Text(
-              'Recent Activity',
-              style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-            const SizedBox(height: 16),
-            
-            // Empty state for recent activity
-            Center(
-              child: Padding(
-                padding: const EdgeInsets.all(32.0),
-                child: Column(
-                  children: [
-                    Icon(Icons.history, size: 64, color: Colors.grey.shade400),
-                    const SizedBox(height: 16),
-                    Text(
-                      'No recent activity yet',
-                      style: TextStyle(color: Colors.grey.shade600),
-                    ),
-                  ],
-                ),
-              ),
+            const SizedBox(height: 24),
+
+            // Recent Activity
+            Text('Recent Activity', style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold)),
+            const SizedBox(height: 12),
+            recentAsync.when(
+              data: (activities) {
+                if (activities.isEmpty) {
+                  return Container(
+                    padding: const EdgeInsets.all(32),
+                    alignment: Alignment.center,
+                    child: Text('No activity yet', style: TextStyle(color: Colors.grey.shade500)),
+                  );
+                }
+                return Column(
+                  children: activities.map((activity) => _buildActivityTile(context, activity, currencyFormat)).toList(),
+                );
+              },
+              loading: () => const Center(child: CircularProgressIndicator()),
+              error: (e, s) => Text('Error: $e'),
             ),
           ],
         ),
@@ -68,41 +58,116 @@ class DashboardScreen extends ConsumerWidget {
     );
   }
 
-  Widget _buildMetricCard(BuildContext context, String title, String value, IconData icon, Color color) {
-    return Card(
-      child: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Row(
+  Widget _buildMetrics(BuildContext context, DashboardMetrics m, NumberFormat fmt) {
+    return Column(
+      children: [
+        // Top row: Net Outstanding
+        Card(
+          color: m.netOutstanding >= 0 ? Colors.green.shade50 : Colors.red.shade50,
+          child: Padding(
+            padding: const EdgeInsets.all(20),
+            child: Row(
               children: [
-                Icon(icon, size: 20, color: color),
-                const SizedBox(width: 8),
+                Icon(
+                  m.netOutstanding >= 0 ? Icons.trending_up : Icons.trending_down,
+                  color: m.netOutstanding >= 0 ? Colors.green : Colors.red,
+                  size: 36,
+                ),
+                const SizedBox(width: 16),
                 Expanded(
-                  child: Text(
-                    title,
-                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                      color: Theme.of(context).colorScheme.onSurface.withOpacity(0.7),
-                    ),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text('Net Outstanding', style: TextStyle(color: Colors.grey.shade700, fontSize: 13)),
+                      const SizedBox(height: 4),
+                      Text(
+                        fmt.format(m.netOutstanding),
+                        style: TextStyle(
+                          fontSize: 28,
+                          fontWeight: FontWeight.bold,
+                          color: m.netOutstanding >= 0 ? Colors.green.shade700 : Colors.red.shade700,
+                        ),
+                      ),
+                      Text(
+                        m.netOutstanding >= 0 ? 'You will receive this' : 'You owe this',
+                        style: TextStyle(fontSize: 12, color: Colors.grey.shade600),
+                      ),
+                    ],
                   ),
                 ),
               ],
             ),
-            const SizedBox(height: 8),
-            Text(
-              value,
-              style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                fontWeight: FontWeight.bold,
-                color: Theme.of(context).colorScheme.onSurface,
-              ),
-            ),
+          ),
+        ),
+        const SizedBox(height: 12),
+
+        // Sales vs Purchases row
+        Row(
+          children: [
+            Expanded(child: _metricCard(context, 'Sales Outstanding', fmt.format(m.salesOutstanding), Icons.arrow_downward, Colors.green, () => context.go('/sales'))),
+            const SizedBox(width: 12),
+            Expanded(child: _metricCard(context, 'Purchase Outstanding', fmt.format(m.purchaseOutstanding), Icons.arrow_upward, Colors.red, () => context.go('/purchases'))),
           ],
         ),
+      ],
+    );
+  }
+
+  Widget _metricCard(BuildContext context, String label, String value, IconData icon, Color color, VoidCallback onTap) {
+    return Card(
+      clipBehavior: Clip.antiAlias,
+      child: InkWell(
+        onTap: onTap,
+        child: Padding(
+          padding: const EdgeInsets.all(16),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Icon(icon, color: color, size: 24),
+              const SizedBox(height: 8),
+              Text(label, style: TextStyle(color: Colors.grey.shade600, fontSize: 12)),
+              const SizedBox(height: 4),
+              Text(value, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+            ],
+          ),
+        ),
       ),
+    );
+  }
+
+  Widget _buildActivityTile(BuildContext context, Map<String, dynamic> activity, NumberFormat fmt) {
+    final type = activity['type'] as String;
+    String title = '';
+    String subtitle = '';
+    IconData icon = Icons.circle;
+    Color color = Colors.grey;
+
+    if (type == 'sale' || type == 'purchase') {
+      final inv = activity['data'] as Invoice;
+      title = '${type == 'sale' ? 'Sale' : 'Purchase'}: ${inv.partyName}';
+      subtitle = '${inv.invoiceNumber} • ${fmt.format(inv.totalAmount)}';
+      icon = type == 'sale' ? Icons.trending_up : Icons.trending_down;
+      color = type == 'sale' ? Colors.green : Colors.orange;
+    } else {
+      final pay = activity['data'] as Payment;
+      title = '${type == 'receipt' ? 'Received from' : 'Paid to'}: ${pay.partyName}';
+      subtitle = fmt.format(pay.totalAmount);
+      icon = type == 'receipt' ? Icons.download : Icons.upload;
+      color = type == 'receipt' ? Colors.green : Colors.red;
+    }
+
+    final date = activity['date'] as DateTime;
+
+    return ListTile(
+      leading: CircleAvatar(
+        backgroundColor: color.withAlpha(25),
+        foregroundColor: color,
+        child: Icon(icon, size: 20),
+      ),
+      title: Text(title, style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w600)),
+      subtitle: Text(subtitle, style: TextStyle(fontSize: 12, color: Colors.grey.shade600)),
+      trailing: Text(DateFormat('dd MMM').format(date), style: TextStyle(fontSize: 11, color: Colors.grey.shade500)),
+      dense: true,
     );
   }
 }

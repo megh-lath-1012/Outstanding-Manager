@@ -3,25 +3,23 @@ import 'package:go_router/go_router.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../providers/auth_provider.dart';
-import '../scaffold_with_nav_bar.dart';
+import '../../ui/scaffold_with_nav_bar.dart';
 
 // Screens
-import '../auth/splash_screen.dart';
-import '../auth/login_screen.dart';
-import '../auth/register_screen.dart';
-import '../dashboard/dashboard_screen.dart';
-import '../invoices/invoices_screen.dart';
-import '../parties/parties_screen.dart';
-import '../payments/payments_screen.dart';
-import '../profile/profile_screen.dart';
+import '../../ui/auth/splash_screen.dart';
+import '../../ui/auth/login_screen.dart';
+import '../../ui/auth/register_screen.dart';
+import '../../ui/dashboard/dashboard_screen.dart';
+import '../../ui/sales/sales_screen.dart';
+import '../../ui/purchases/purchases_screen.dart';
+import '../../ui/settings/settings_screen.dart';
 
 // Navigator keys
 final _rootNavigatorKey = GlobalKey<NavigatorState>(debugLabel: 'root');
-final _shellNavigatorDashboardKey = GlobalKey<NavigatorState>(debugLabel: 'shellDashboard');
-final _shellNavigatorInvoicesKey = GlobalKey<NavigatorState>(debugLabel: 'shellInvoices');
-final _shellNavigatorPartiesKey = GlobalKey<NavigatorState>(debugLabel: 'shellParties');
-final _shellNavigatorPaymentsKey = GlobalKey<NavigatorState>(debugLabel: 'shellPayments');
-final _shellNavigatorProfileKey = GlobalKey<NavigatorState>(debugLabel: 'shellProfile');
+final _shellNavigatorHomeKey = GlobalKey<NavigatorState>(debugLabel: 'shellHome');
+final _shellNavigatorSalesKey = GlobalKey<NavigatorState>(debugLabel: 'shellSales');
+final _shellNavigatorPurchasesKey = GlobalKey<NavigatorState>(debugLabel: 'shellPurchases');
+final _shellNavigatorSettingsKey = GlobalKey<NavigatorState>(debugLabel: 'shellSettings');
 
 final routerProvider = Provider<GoRouter>((ref) {
   final authState = ref.watch(authStateProvider);
@@ -30,13 +28,11 @@ final routerProvider = Provider<GoRouter>((ref) {
     navigatorKey: _rootNavigatorKey,
     initialLocation: '/',
     redirect: (context, state) {
-      // Logic for authenticated routes protection
       final isAuth = authState.value != null;
       final isSplash = state.uri.path == '/';
       final isLogin = state.uri.path == '/login';
       final isRegister = state.uri.path == '/register';
 
-      // If still loading auth state, stay on splash
       if (authState.isLoading) return null;
 
       if (!isAuth && !isLogin && !isRegister && !isSplash) {
@@ -44,7 +40,7 @@ final routerProvider = Provider<GoRouter>((ref) {
       }
 
       if (isAuth && (isLogin || isRegister || isSplash)) {
-        return '/dashboard';
+        return '/home';
       }
 
       return null;
@@ -62,59 +58,48 @@ final routerProvider = Provider<GoRouter>((ref) {
         path: '/register',
         builder: (context, state) => const RegisterScreen(),
       ),
-      // Stateful navigation shell
       StatefulShellRoute.indexedStack(
         builder: (context, state, navigationShell) {
           return ScaffoldWithNavBar(navigationShell: navigationShell);
         },
         branches: [
-          // The dashboard branch
+          // Home
           StatefulShellBranch(
-            navigatorKey: _shellNavigatorDashboardKey,
+            navigatorKey: _shellNavigatorHomeKey,
             routes: [
               GoRoute(
-                path: '/dashboard',
+                path: '/home',
                 builder: (context, state) => const DashboardScreen(),
               ),
             ],
           ),
-          // The invoices branch
+          // Sales
           StatefulShellBranch(
-            navigatorKey: _shellNavigatorInvoicesKey,
+            navigatorKey: _shellNavigatorSalesKey,
             routes: [
               GoRoute(
-                path: '/invoices',
-                builder: (context, state) => const InvoicesScreen(),
+                path: '/sales',
+                builder: (context, state) => const SalesScreen(),
               ),
             ],
           ),
-          // The parties branch
+          // Purchases
           StatefulShellBranch(
-            navigatorKey: _shellNavigatorPartiesKey,
+            navigatorKey: _shellNavigatorPurchasesKey,
             routes: [
               GoRoute(
-                path: '/parties',
-                builder: (context, state) => const PartiesScreen(),
+                path: '/purchases',
+                builder: (context, state) => const PurchasesScreen(),
               ),
             ],
           ),
-          // The payments branch
+          // Settings
           StatefulShellBranch(
-            navigatorKey: _shellNavigatorPaymentsKey,
+            navigatorKey: _shellNavigatorSettingsKey,
             routes: [
               GoRoute(
-                path: '/payments',
-                builder: (context, state) => const PaymentsScreen(),
-              ),
-            ],
-          ),
-          // The profile branch
-          StatefulShellBranch(
-            navigatorKey: _shellNavigatorProfileKey,
-            routes: [
-              GoRoute(
-                path: '/profile',
-                builder: (context, state) => const ProfileScreen(),
+                path: '/settings',
+                builder: (context, state) => const SettingsScreen(),
               ),
             ],
           ),

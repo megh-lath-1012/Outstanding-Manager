@@ -7,7 +7,6 @@ class ScaffoldWithNavBar extends StatelessWidget {
     super.key,
   });
 
-  /// The navigation shell and container for the branch Navigators.
   final StatefulNavigationShell navigationShell;
 
   @override
@@ -19,29 +18,24 @@ class ScaffoldWithNavBar extends StatelessWidget {
         onDestinationSelected: (int index) => _onTap(context, index),
         destinations: const [
           NavigationDestination(
-            icon: Icon(Icons.dashboard_outlined),
-            selectedIcon: Icon(Icons.dashboard),
+            icon: Icon(Icons.home_outlined),
+            selectedIcon: Icon(Icons.home),
             label: 'Home',
           ),
           NavigationDestination(
-            icon: Icon(Icons.description_outlined),
-            selectedIcon: Icon(Icons.description),
-            label: 'Invoices',
+            icon: Icon(Icons.trending_up_outlined),
+            selectedIcon: Icon(Icons.trending_up),
+            label: 'Sales',
           ),
           NavigationDestination(
-            icon: Icon(Icons.people_outline),
-            selectedIcon: Icon(Icons.people),
-            label: 'Parties',
+            icon: Icon(Icons.trending_down_outlined),
+            selectedIcon: Icon(Icons.trending_down),
+            label: 'Purchases',
           ),
           NavigationDestination(
-            icon: Icon(Icons.payments_outlined),
-            selectedIcon: Icon(Icons.payments),
-            label: 'Payments',
-          ),
-          NavigationDestination(
-            icon: Icon(Icons.person_outline),
-            selectedIcon: Icon(Icons.person),
-            label: 'Profile',
+            icon: Icon(Icons.settings_outlined),
+            selectedIcon: Icon(Icons.settings),
+            label: 'Settings',
           ),
         ],
       ),
@@ -51,8 +45,6 @@ class ScaffoldWithNavBar extends StatelessWidget {
   void _onTap(BuildContext context, int index) {
     navigationShell.goBranch(
       index,
-      // A common pattern when tapping the current tab is to navigate to the
-      // initial location of that branch.
       initialLocation: index == navigationShell.currentIndex,
     );
   }

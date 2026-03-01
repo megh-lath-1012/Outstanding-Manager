@@ -94,6 +94,13 @@ class AuthRepository {
     await _auth.signOut();
   }
 
+  Future<void> updateProfile(Map<String, dynamic> data) async {
+    final user = _auth.currentUser;
+    if (user == null) throw Exception('Not authenticated');
+    data['updatedAt'] = FieldValue.serverTimestamp();
+    await _firestore.collection('users').doc(user.uid).update(data);
+  }
+
   Future<void> sendPasswordResetEmail(String email) async {
     try {
       await _auth.sendPasswordResetEmail(email: email);

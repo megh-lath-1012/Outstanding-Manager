@@ -2,7 +2,6 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../models/payment_model.dart';
 import 'firebase_providers.dart';
-import 'auth_provider.dart';
 import 'invoice_provider.dart';
 
 class PaymentQuery {
@@ -15,82 +14,114 @@ class PaymentQuery {
   });
 
   @override
-  bool operator ==(Object old) =>
-      old is PaymentQuery &&
-      old.paymentType == paymentType &&
-      old.partyId == partyId;
+  bool operator ==(Object other) =>
+      other is PaymentQuery &&
+      other.paymentType == paymentType &&
+      other.partyId == partyId;
 
   @override
   int get hashCode => Object.hash(paymentType, partyId);
 }
 
 final paymentsProvider = StreamProvider.family<List<Payment>, PaymentQuery>((ref, query) {
-  final user = ref.watch(authStateProvider).value;
-  if (user == null) {
-    return Stream.value([]);
-  }
+  final userDoc = ref.watch(userDocProvider);
+  if (userDoc == null) return Stream.value([]);
 
-  Query<Map<String, dynamic>> firestoreQuery = ref.watch(firebaseFirestoreProvider)
+  Query<Map<String, dynamic>> firestoreQuery = userDoc
     .collection('payments')
-    .where('userId', isEqualTo: user.uid)
     .where('paymentType', isEqualTo: query.paymentType);
-  
+
   if (query.partyId != null) {
     firestoreQuery = firestoreQuery.where('partyId', isEqualTo: query.partyId);
   }
-  
-  // NOTE: Requires composite index in Firestore
-  firestoreQuery = firestoreQuery.orderBy('paymentDate', descending: true);
-  
+
   return firestoreQuery
     .snapshots()
-    .map((snapshot) => snapshot.docs.map((doc) => Payment.fromFirestore(doc)).toList());
+    .map((snapshot) {
+      final payments = snapshot.docs.map((doc) => Payment.fromFirestore(doc)).toList();
+      payments.sort((a, b) => b.paymentDate.compareTo(a.paymentDate));
+      return payments;
+    });
 });
 
 final paymentRepositoryProvider = Provider<PaymentRepository>((ref) {
-  return PaymentRepository(
-    ref.watch(firebaseFirestoreProvider),
-    ref.watch(invoiceRepositoryProvider),
-  );
+  return PaymentRepository(ref);
 });
 
 class PaymentRepository {
-  final FirebaseFirestore _firestore;
-  final InvoiceRepository _invoiceRepository;
-  
-  PaymentRepository(this._firestore, this._invoiceRepository);
-  
+  final Ref _ref;
+
+  PaymentRepository(this._ref);
+
+  DocumentReference? get _userDoc => _ref.read(userDocProvider);
+  InvoiceRepository get _invoiceRepo => _ref.read(invoiceRepositoryProvider);
+
   Future<String> recordPayment(Payment payment, List<PaymentAllocation> allocations) async {
-    // We can either use a huge transaction to update the payment and ALL invoices,
-    // or use a batch for the payment itself, and individual transactions for the invoices.
-    // For simplicity & safety in this mockup without Cloud Functions, we'll do sequential transactions.
-    
-    // Validate total matches
-    double totalAllocated = allocations.fold(0.0, (sum, alloc) => sum + alloc.allocatedAmount);
-    // Allowing tiny float anomalies, but roughly it should match
+    final userDoc = _userDoc;
+    if (userDoc == null) throw Exception('Not authenticated');
+
+    // Validation
+    if (allocations.isEmpty) {
+      throw Exception('Please select at least one invoice to allocate.');
+    }
+    for (var alloc in allocations) {
+      if (alloc.allocatedAmount <= 0) {
+        throw Exception('All allocated amounts must be greater than 0.');
+      }
+    }
+    double totalAllocated = allocations.fold(0.0, (s, a) => s + a.allocatedAmount);
     if ((totalAllocated - payment.totalAmount).abs() > 0.01) {
-      throw Exception('Total allocated must equal total payment amount');
+      throw Exception('Total allocated must equal total payment amount.');
     }
 
-    final batch = _firestore.batch();
-    
-    // Create payment document
-    final docRef = _firestore.collection('payments').doc();
+    // Save payment doc
+    final firestore = _ref.read(firebaseFirestoreProvider);
+    final batch = firestore.batch();
+    final docRef = userDoc.collection('payments').doc();
     batch.set(docRef, payment.toMap());
-    
-    // Add allocations subcollection
+
+    // Save allocations subcollection
     for (var allocation in allocations) {
       final allocRef = docRef.collection('allocations').doc();
       batch.set(allocRef, allocation.toMap());
     }
-    
+
     await batch.commit();
 
-    // Now update invoice statuses locally since we are not relying on Cloud Functions
+    // Update each invoice's paid/outstanding
     for (var allocation in allocations) {
-       await _invoiceRepository.updateInvoiceStatus(allocation.invoiceId, allocation.allocatedAmount);
+      await _invoiceRepo.updateInvoiceStatus(allocation.invoiceId, allocation.allocatedAmount);
     }
-    
+
     return docRef.id;
+  }
+
+  Future<void> deletePayment(String paymentId) async {
+    final userDoc = _userDoc;
+    if (userDoc == null) throw Exception('Not authenticated');
+
+    // Get allocations
+    final allocationsSnapshot = await userDoc
+      .collection('payments')
+      .doc(paymentId)
+      .collection('allocations')
+      .get();
+
+    // Reverse each allocation on its invoice
+    for (var allocDoc in allocationsSnapshot.docs) {
+      final data = allocDoc.data();
+      final invoiceId = data['invoiceId'] as String;
+      final amount = (data['allocatedAmount'] ?? 0).toDouble();
+      await _invoiceRepo.updateInvoiceStatus(invoiceId, -amount);
+    }
+
+    // Delete allocations + payment
+    final firestore = _ref.read(firebaseFirestoreProvider);
+    final batch = firestore.batch();
+    for (var doc in allocationsSnapshot.docs) {
+      batch.delete(doc.reference);
+    }
+    batch.delete(userDoc.collection('payments').doc(paymentId));
+    await batch.commit();
   }
 }

@@ -128,7 +128,14 @@ class _PartiesScreenState extends ConsumerState<PartiesScreen> with SingleTicker
       child: InkWell(
         borderRadius: BorderRadius.circular(12),
         onTap: () {
-           // Navigate to detail
+           Navigator.of(context).push(
+             MaterialPageRoute(
+               builder: (_) => AddPartyScreen(
+                  initialType: party.partyType,
+                  partyToEdit: party,
+               ),
+             ),
+           );
         },
         child: Padding(
           padding: const EdgeInsets.all(16.0),

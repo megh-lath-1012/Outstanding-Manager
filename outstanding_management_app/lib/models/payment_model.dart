@@ -34,7 +34,6 @@ class PaymentAllocation {
 
 class Payment {
   final String id;
-  final String userId;
   final String partyId;
   final String partyName;
   final String paymentType; // "receipt" or "payment"
@@ -51,7 +50,6 @@ class Payment {
 
   Payment({
     required this.id,
-    required this.userId,
     required this.partyId,
     required this.partyName,
     required this.paymentType,
@@ -69,15 +67,14 @@ class Payment {
     final data = doc.data() as Map<String, dynamic>;
     return Payment(
       id: doc.id,
-      userId: data['userId'] ?? '',
-      partyId: data['partyId'] ?? '',
-      partyName: data['partyName'] ?? '',
+      partyId: (data['partyId'] ?? '').toString(),
+      partyName: (data['partyName'] ?? '').toString(),
       paymentType: data['paymentType'] ?? '',
       paymentDate: (data['paymentDate'] as Timestamp?)?.toDate() ?? DateTime.now(),
       totalAmount: (data['totalAmount'] ?? 0).toDouble(),
-      paymentMethod: data['paymentMethod'] ?? 'cash',
-      referenceNumber: data['referenceNumber'],
-      notes: data['notes'],
+      paymentMethod: (data['paymentMethod'] ?? 'cash').toString(),
+      referenceNumber: data['referenceNumber']?.toString(),
+      notes: data['notes']?.toString(),
       createdAt: (data['createdAt'] as Timestamp?)?.toDate() ?? DateTime.now(),
       updatedAt: (data['updatedAt'] as Timestamp?)?.toDate() ?? DateTime.now(),
     );
@@ -85,7 +82,6 @@ class Payment {
 
   Map<String, dynamic> toMap() {
     return {
-      'userId': userId,
       'partyId': partyId,
       'partyName': partyName,
       'paymentType': paymentType,
