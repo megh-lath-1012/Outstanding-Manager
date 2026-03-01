@@ -27,7 +27,24 @@ A premium, cross-platform Flutter application designed to help businesses track 
 - **State Management**: [Riverpod](https://riverpod.dev/)
 - **Database & Auth**: [Firebase](https://firebase.google.com/) (Firestore, Auth)
 - **Reporting**: `pdf` and `excel` packages
-- **UI Architecture**: Clean and modular component-based design
+- **CI/CD**: GitHub Actions (Automated Analysis & Testing)
+
+## 🏗 Development Workflow
+
+### Branch Strategy
+- **`main`**: Production-ready code. Protected branch.
+- **`enhancements`**: Feature development and bug fixes.
+- All changes must be merged via Pull Requests.
+
+### Branch Protection Rules (Manual Setup Required)
+To ensure code quality, please configure the following on GitHub:
+1. Go to **Settings > Branches > Add branch protection rule**.
+2. **Branch name pattern**: `main`.
+3. ✅ **Require a pull request before merging**:
+    - Require approvals (set to 1 or more).
+4. ✅ **Require status checks to pass before merging**:
+    - Search and select `build (ubuntu-latest)` (this is our Flutter CI job).
+5. ✅ **Do not allow bypassing the above settings**.
 
 ## 🚀 Getting Started
 
