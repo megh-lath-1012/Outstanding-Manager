@@ -142,7 +142,9 @@ class _BusinessSettingsScreenState
                         .map((c) => DropdownMenuItem(value: c, child: Text(c)))
                         .toList(),
                     onChanged: (val) {
-                      if (val != null) setState(() => _currency = val);
+                      if (val != null) {
+                        setState(() => _currency = val);
+                      }
                     },
                   ),
                   const SizedBox(height: 32),

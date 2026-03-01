@@ -222,18 +222,20 @@ class _PaymentHistoryScreenState extends ConsumerState<PaymentHistoryScreen> {
               Navigator.pop(ctx);
               try {
                 await ref.read(paymentRepositoryProvider).deletePayment(p.id);
-                if (mounted)
+                if (mounted) {
                   ScaffoldMessenger.of(context).showSnackBar(
                     const SnackBar(content: Text('Payment deleted.')),
                   );
+                }
               } catch (e) {
-                if (mounted)
+                if (mounted) {
                   ScaffoldMessenger.of(context).showSnackBar(
                     SnackBar(
                       content: Text('Error: $e'),
                       backgroundColor: Colors.red,
                     ),
                   );
+                }
               }
             },
             child: const Text('Delete', style: TextStyle(color: Colors.red)),

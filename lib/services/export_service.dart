@@ -1,13 +1,10 @@
 import 'dart:io';
-import 'dart:typed_data';
 import 'package:excel/excel.dart';
 import 'package:intl/intl.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
-import 'package:share_plus/share_plus.dart';
 import '../models/invoice_model.dart';
-import 'package:flutter/services.dart';
 
 class ExportService {
   static final currencyFormat = NumberFormat.currency(
@@ -182,8 +179,7 @@ class ExportService {
 
     final directory = await _getExportDirectory();
     final filePath = '${directory.path}/${title.replaceAll(' ', '_')}.pdf';
-    final file = File(filePath);
-    await file.writeAsBytes(await pdf.save());
+    await File(filePath).writeAsBytes(await pdf.save());
 
     return filePath;
   }

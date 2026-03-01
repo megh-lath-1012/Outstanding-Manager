@@ -269,8 +269,9 @@ class _RecordPaymentScreenState extends ConsumerState<RecordPaymentScreen> {
                                 firstDate: DateTime(2000),
                                 lastDate: DateTime(2100),
                               );
-                              if (date != null)
+                              if (date != null) {
                                 setState(() => _paymentDate = date);
+                              }
                             },
                             child: InputDecorator(
                               decoration: const InputDecoration(
@@ -306,8 +307,9 @@ class _RecordPaymentScreenState extends ConsumerState<RecordPaymentScreen> {
                                 )
                                 .toList(),
                             onChanged: (val) {
-                              if (val != null)
+                              if (val != null) {
                                 setState(() => _paymentMethod = val);
+                              }
                             },
                           ),
                         ),
@@ -341,9 +343,12 @@ class _RecordPaymentScreenState extends ConsumerState<RecordPaymentScreen> {
                         prefixText: '\u20b9 ',
                       ),
                       validator: (v) {
-                        if (v == null || v.isEmpty) return 'Required';
-                        if ((double.tryParse(v) ?? 0) <= 0)
+                        if (v == null || v.isEmpty) {
+                          return 'Required';
+                        }
+                        if ((double.tryParse(v) ?? 0) <= 0) {
                           return 'Must be > 0';
+                        }
                         return null;
                       },
                       onChanged: (_) {

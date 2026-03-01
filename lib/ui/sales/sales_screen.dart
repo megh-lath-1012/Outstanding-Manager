@@ -131,8 +131,9 @@ class _SalesScreenState extends ConsumerState<SalesScreen> {
                     );
                   }
 
-                  if (!mounted) return;
-                  Navigator.pop(context); // Close loader
+                  if (context.mounted) {
+                    Navigator.pop(context); // Close loader
+                  }
 
                   if (filePath != null) {
                     await Share.shareXFiles([
@@ -146,14 +147,15 @@ class _SalesScreenState extends ConsumerState<SalesScreen> {
                     );
                   }
                 } catch (e) {
-                  if (!mounted) return;
-                  Navigator.pop(context); // Close loader
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(
-                      content: Text('Export failed: $e'),
-                      backgroundColor: Colors.red,
-                    ),
-                  );
+                  if (context.mounted) {
+                    Navigator.pop(context); // Close loader
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: Text('Export failed: $e'),
+                        backgroundColor: Colors.red,
+                      ),
+                    );
+                  }
                 }
               }
             },

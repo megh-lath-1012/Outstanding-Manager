@@ -244,9 +244,9 @@ class _AddPartyScreenState extends ConsumerState<AddPartyScreen> {
                     Container(
                       padding: const EdgeInsets.all(12),
                       decoration: BoxDecoration(
-                        color: Colors.blue.withOpacity(0.05),
+                        color: Colors.blue.withAlpha(13), // 0.05 * 255
                         borderRadius: BorderRadius.circular(8),
-                        border: Border.all(color: Colors.blue.withOpacity(0.2)),
+                        border: Border.all(color: Colors.blue.withAlpha(51)), // 0.2 * 255
                       ),
                       child: const Row(
                         children: [

@@ -132,8 +132,9 @@ class _PurchasesScreenState extends ConsumerState<PurchasesScreen> {
                     );
                   }
 
-                  if (!mounted) return;
-                  Navigator.pop(context); // Close loader
+                  if (context.mounted) {
+                    Navigator.pop(context); // Close loader
+                  }
 
                   if (filePath != null) {
                     await Share.shareXFiles([
@@ -147,14 +148,15 @@ class _PurchasesScreenState extends ConsumerState<PurchasesScreen> {
                     );
                   }
                 } catch (e) {
-                  if (!mounted) return;
-                  Navigator.pop(context); // Close loader
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(
-                      content: Text('Export failed: $e'),
-                      backgroundColor: Colors.red,
-                    ),
-                  );
+                  if (context.mounted) {
+                    Navigator.pop(context); // Close loader
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: Text('Export failed: $e'),
+                        backgroundColor: Colors.red,
+                      ),
+                    );
+                  }
                 }
               }
             },
@@ -489,18 +491,20 @@ class _PurchasesScreenState extends ConsumerState<PurchasesScreen> {
               Navigator.pop(ctx);
               try {
                 await ref.read(invoiceRepositoryProvider).deleteInvoice(inv.id);
-                if (mounted)
+                if (mounted) {
                   ScaffoldMessenger.of(context).showSnackBar(
                     const SnackBar(content: Text('Record deleted.')),
                   );
+                }
               } catch (e) {
-                if (mounted)
+                if (mounted) {
                   ScaffoldMessenger.of(context).showSnackBar(
                     SnackBar(
                       content: Text('Error: $e'),
                       backgroundColor: Colors.red,
                     ),
                   );
+                }
               }
             },
             child: const Text('Delete', style: TextStyle(color: Colors.red)),

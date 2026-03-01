@@ -288,8 +288,9 @@ class _AddPaymentScreenState extends ConsumerState<AddPaymentScreen> {
                                 firstDate: DateTime(2000),
                                 lastDate: DateTime(2100),
                               );
-                              if (date != null)
+                              if (date != null) {
                                 setState(() => _paymentDate = date);
+                              }
                             },
                             child: InputDecorator(
                               decoration: const InputDecoration(
@@ -328,8 +329,9 @@ class _AddPaymentScreenState extends ConsumerState<AddPaymentScreen> {
                                 )
                                 .toList(),
                             onChanged: (val) {
-                              if (val != null)
+                              if (val != null) {
                                 setState(() => _paymentMethod = val);
+                              }
                             },
                           ),
                         ),

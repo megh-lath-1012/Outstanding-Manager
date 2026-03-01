@@ -150,7 +150,7 @@ class _PartiesScreenState extends ConsumerState<PartiesScreen>
               CircleAvatar(
                 backgroundColor: Theme.of(
                   context,
-                ).colorScheme.primary.withOpacity(0.1),
+                ).colorScheme.primary.withAlpha(25),
                 foregroundColor: Theme.of(context).colorScheme.primary,
                 child: Text(
                   party.name.isNotEmpty ? party.name[0].toUpperCase() : '?',

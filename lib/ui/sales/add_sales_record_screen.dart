@@ -248,8 +248,9 @@ class _AddSalesRecordScreenState extends ConsumerState<AddSalesRecordScreen> {
                       validator: (v) {
                         if (v == null || v.isEmpty) return 'Required';
                         final val = double.tryParse(v);
-                        if (val == null || val <= 0)
+                        if (val == null || val <= 0) {
                           return 'Enter valid amount';
+                        }
                         return null;
                       },
                     ),
@@ -269,8 +270,9 @@ class _AddSalesRecordScreenState extends ConsumerState<AddSalesRecordScreen> {
                       validator: (v) {
                         if (v != null && v.isNotEmpty) {
                           final val = double.tryParse(v);
-                          if (val == null || val < 0)
+                          if (val == null || val < 0) {
                             return 'Enter valid amount';
+                          }
                         }
                         return null;
                       },

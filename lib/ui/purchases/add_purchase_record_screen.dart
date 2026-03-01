@@ -59,8 +59,9 @@ class _AddPurchaseRecordScreenState
           ? double.parse(_advanceController.text)
           : 0.0;
 
-      if (advanceAmount > totalAmount)
+      if (advanceAmount > totalAmount) {
         throw Exception('Advance cannot exceed total.');
+      }
 
       final invoice = Invoice(
         id: '',
@@ -116,10 +117,11 @@ class _AddPurchaseRecordScreenState
         Navigator.pop(context);
       }
     } catch (e) {
-      if (mounted)
+      if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text('$e'), backgroundColor: Colors.red),
         );
+      }
     } finally {
       if (mounted) setState(() => _isLoading = false);
     }
@@ -154,7 +156,9 @@ class _AddPurchaseRecordScreenState
                           firstDate: DateTime(2000),
                           lastDate: DateTime(2100),
                         );
-                        if (date != null) setState(() => _invoiceDate = date);
+                        if (date != null) {
+                          setState(() => _invoiceDate = date);
+                        }
                       },
                       child: InputDecorator(
                         decoration: const InputDecoration(
@@ -195,7 +199,9 @@ class _AddPurchaseRecordScreenState
                               ),
                             ],
                             onChanged: (val) {
-                              if (val != null) setState(() => _docType = val);
+                              if (val != null) {
+                                setState(() => _docType = val);
+                              }
                             },
                           ),
                         ),
@@ -231,10 +237,13 @@ class _AddPurchaseRecordScreenState
                         prefixText: '\u20b9 ',
                       ),
                       validator: (v) {
-                        if (v == null || v.isEmpty) return 'Required';
+                        if (v == null || v.isEmpty) {
+                          return 'Required';
+                        }
                         final val = double.tryParse(v);
-                        if (val == null || val <= 0)
+                        if (val == null || val <= 0) {
                           return 'Enter valid amount';
+                        }
                         return null;
                       },
                     ),
