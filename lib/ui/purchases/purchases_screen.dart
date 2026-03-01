@@ -132,15 +132,15 @@ class _PurchasesScreenState extends ConsumerState<PurchasesScreen> {
                     );
                   }
 
-                  if (context.mounted) {
-                    Navigator.pop(context); // Close loader
-                  }
+                  if (!context.mounted) return;
+                  Navigator.pop(context); // Close loader
 
                   if (filePath != null) {
                     await Share.shareXFiles([
                       XFile(filePath),
                     ], text: 'Purchase Outstanding');
-                    if (!mounted) return;
+                    
+                    if (!context.mounted) return;
                     ScaffoldMessenger.of(context).showSnackBar(
                       SnackBar(
                         content: Text('Purchase Outstanding exported as $val'),

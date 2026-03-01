@@ -131,15 +131,15 @@ class _SalesScreenState extends ConsumerState<SalesScreen> {
                     );
                   }
 
-                  if (context.mounted) {
-                    Navigator.pop(context); // Close loader
-                  }
+                  if (!context.mounted) return;
+                  Navigator.pop(context); // Close loader
 
                   if (filePath != null) {
                     await Share.shareXFiles([
                       XFile(filePath),
                     ], text: 'Sales Outstanding');
-                    if (!mounted) return;
+                    
+                    if (!context.mounted) return;
                     ScaffoldMessenger.of(context).showSnackBar(
                       SnackBar(
                         content: Text('Sales Outstanding exported as $val'),
