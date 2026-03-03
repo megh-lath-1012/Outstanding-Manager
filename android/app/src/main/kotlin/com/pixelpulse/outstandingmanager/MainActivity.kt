@@ -1,4 +1,4 @@
-package com.example.outstanding_management_app
+package com.pixelpulse.outstandingmanager
 
 import io.flutter.embedding.android.FlutterActivity
 

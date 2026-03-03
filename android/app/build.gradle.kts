@@ -12,7 +12,7 @@ import java.util.Properties
 import java.io.FileInputStream
 
 android {
-    namespace = "com.example.outstanding_management_app"
+    namespace = "com.pixelpulse.outstandingmanager"
     compileSdk = flutter.compileSdkVersion
     ndkVersion = flutter.ndkVersion
 
@@ -27,7 +27,7 @@ android {
 
     defaultConfig {
         // TODO: Specify your own unique Application ID (https://developer.android.com/studio/build/application-id.html).
-        applicationId = "com.example.outstanding_management_app"
+        applicationId = "com.pixelpulse.outstandingmanager"
         // You can update the following values to match your application needs.
         // For more information, see: https://flutter.dev/to/review-gradle-config.
         minSdk = flutter.minSdkVersion

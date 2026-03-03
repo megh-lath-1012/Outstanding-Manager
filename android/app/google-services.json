@@ -7,9 +7,28 @@
   "client": [
     {
       "client_info": {
-        "mobilesdk_app_id": "1:331195204285:android:1fc78f424be04584f42dd4",
+        "mobilesdk_app_id": "1:331195204285:android:f3e52934c222f650f42dd4",
         "android_client_info": {
-          "package_name": "com.example.outstanding_management_app"
+          "package_name": "com.pixelpulse.outstanding_manager"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDQ2EtQKAeNBLkuNUXmVgW_N475mrWHPiM"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:331195204285:android:02db91e004a09741f42dd4",
+        "android_client_info": {
+          "package_name": "com.pixelpulse.outstandingmanager"
         }
       },
       "oauth_client": [],
