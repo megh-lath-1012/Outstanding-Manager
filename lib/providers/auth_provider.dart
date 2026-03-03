@@ -112,6 +112,38 @@ class AuthRepository {
     await _firestore.collection('users').doc(user.uid).update(data);
   }
 
+  Future<void> deleteAccount() async {
+    final user = _auth.currentUser;
+    if (user == null) throw Exception('Not authenticated');
+
+    final uid = user.uid;
+
+    // 1. Delete user collections (Parties, Invoices, Payments)
+    // Note: In a production app, this might be better handled by a Cloud Function 
+    // or a more robust batching mechanism if there's a lot of data.
+    
+    final collections = ['parties', 'invoices', 'payments'];
+    
+    for (final collection in collections) {
+      final snapshot = await _firestore
+          .collection(collection)
+          .where('userId', isEqualTo: uid)
+          .get();
+          
+      final batch = _firestore.batch();
+      for (final doc in snapshot.docs) {
+        batch.delete(doc.reference);
+      }
+      await batch.commit();
+    }
+
+    // 2. Delete user profile
+    await _firestore.collection('users').doc(uid).delete();
+
+    // 3. Delete Auth Account
+    await user.delete();
+  }
+
   Future<void> sendPasswordResetEmail(String email) async {
     try {
       await _auth.sendPasswordResetEmail(email: email);
