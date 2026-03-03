@@ -119,17 +119,17 @@ class AuthRepository {
     final uid = user.uid;
 
     // 1. Delete user collections (Parties, Invoices, Payments)
-    // Note: In a production app, this might be better handled by a Cloud Function 
+    // Note: In a production app, this might be better handled by a Cloud Function
     // or a more robust batching mechanism if there's a lot of data.
-    
+
     final collections = ['parties', 'invoices', 'payments'];
-    
+
     for (final collection in collections) {
       final snapshot = await _firestore
           .collection(collection)
           .where('userId', isEqualTo: uid)
           .get();
-          
+
       final batch = _firestore.batch();
       for (final doc in snapshot.docs) {
         batch.delete(doc.reference);

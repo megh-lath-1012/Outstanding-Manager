@@ -250,7 +250,10 @@ class SettingsScreen extends ConsumerWidget {
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: const Text('Delete Account', style: TextStyle(color: Colors.red)),
+        title: const Text(
+          'Delete Account',
+          style: TextStyle(color: Colors.red),
+        ),
         content: const Text(
           'WARNING: This action is permanent and will delete all your data, including parties, invoices, and payments. This cannot be undone.',
           style: TextStyle(height: 1.5),
@@ -269,9 +272,8 @@ class SettingsScreen extends ConsumerWidget {
                   showDialog(
                     context: context,
                     barrierDismissible: false,
-                    builder: (context) => const Center(
-                      child: CircularProgressIndicator(),
-                    ),
+                    builder: (context) =>
+                        const Center(child: CircularProgressIndicator()),
                   );
                 }
 
