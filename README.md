@@ -21,6 +21,29 @@ A premium, cross-platform Flutter application designed to help businesses track 
 - **👤 Profile & Settings**: Manage business details and app preferences.
 - **🔒 Secure & Sync**: Powered by Firebase for real-time data sync and secure authentication.
 
+## 🔄 Application Flow
+
+Understanding how the application works is key to effective management:
+
+1.  **Dashboard**: Start here for a high-level overview of total receivables (from customers) and payables (to suppliers).
+2.  **Parties**: Add and manage Customers (who buy from you) and Suppliers (you buy from).
+3.  **Invoices**:
+    *   Create **Sales Invoices** for customers.
+    *   Create **Purchase Invoices** for suppliers.
+    *   Invoices track line items, discounts, and taxes.
+4.  **Payments**:
+    *   Record **Receipts** when a customer pays you.
+    *   Record **Payments** when you pay a supplier.
+    *   A single payment can be allocated across multiple invoices.
+
+## ⚙️ Core Logic
+
+The application features an automated balance management system:
+
+*   **Real-time Updates**: When a payment is recorded and allocated to an invoice, the invoice's `paidAmount` and `outstandingAmount` are recalculated automatically.
+*   **Balance Restoration**: If a payment record is deleted, the system automatically restores the corresponding invoice balances, ensuring your records always stay accurate.
+*   **Status Management**: Invoices automatically transition between `Unpaid`, `Partial`, and `Paid` statuses based on the total allocated payments.
+
 ## 🛠 Tech Stack
 
 - **Framework**: [Flutter](https://flutter.dev/) (3.11+)
