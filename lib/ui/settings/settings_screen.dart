@@ -120,7 +120,7 @@ class SettingsScreen extends ConsumerWidget {
             onTap: () => _showInfoDialog(
               context,
               'Privacy Policy',
-              'Your data is stored securely in the cloud and is only accessible by you. We do not share your data with any third parties.',
+              'Outstanding Manager is committed to protecting your privacy. We collect your email and company name to sync your records across devices. Your data is stored securely in Firebase and is never shared with third parties. You have full control over your data and can delete it at any time.\n\nFor the full policy, visit our website or contact support.',
             ),
           ),
           _settingsTile(
@@ -130,7 +130,7 @@ class SettingsScreen extends ConsumerWidget {
             onTap: () => _showInfoDialog(
               context,
               'Terms & Conditions',
-              'By using this app, you agree to use it responsibly for managing your business outstanding records. We are not liable for any data discrepancies.',
+              'By using Outstanding Manager, you agree to manage your business records responsibly. The app is provided "as is" and we are not liable for any data entry errors or financial decisions made based on the app\'s contents. Ensure you keep your credentials secure.\n\nContinued use of the app constitutes acceptance of these terms.',
             ),
           ),
 
@@ -149,9 +149,15 @@ class SettingsScreen extends ConsumerWidget {
             context,
             icon: Icons.logout,
             title: 'Sign Out',
+            onTap: () => _confirmSignOut(context, ref),
+          ),
+          _settingsTile(
+            context,
+            icon: Icons.delete_forever_outlined,
+            title: 'Delete Account',
             titleColor: Colors.red,
             iconColor: Colors.red,
-            onTap: () => _confirmSignOut(context, ref),
+            onTap: () => _confirmAccountDeletion(context, ref),
           ),
 
           const SizedBox(height: 32),
@@ -233,7 +239,68 @@ class SettingsScreen extends ConsumerWidget {
               await ref.read(authRepositoryProvider).signOut();
               if (context.mounted) context.go('/login');
             },
-            child: const Text('Sign Out', style: TextStyle(color: Colors.red)),
+            child: const Text('Sign Out'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _confirmAccountDeletion(BuildContext context, WidgetRef ref) {
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text(
+          'Delete Account',
+          style: TextStyle(color: Colors.red),
+        ),
+        content: const Text(
+          'WARNING: This action is permanent and will delete all your data, including parties, invoices, and payments. This cannot be undone.',
+          style: TextStyle(height: 1.5),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: const Text('Cancel'),
+          ),
+          TextButton(
+            onPressed: () async {
+              Navigator.pop(ctx);
+              try {
+                // Show loading indicator
+                if (context.mounted) {
+                  showDialog(
+                    context: context,
+                    barrierDismissible: false,
+                    builder: (context) =>
+                        const Center(child: CircularProgressIndicator()),
+                  );
+                }
+
+                await ref.read(authRepositoryProvider).deleteAccount();
+
+                if (context.mounted) {
+                  Navigator.pop(context); // Pop loading
+                  context.go('/login');
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                      content: Text('Account successfully deleted.'),
+                    ),
+                  );
+                }
+              } catch (e) {
+                if (context.mounted) {
+                  Navigator.pop(context); // Pop loading
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(content: Text('Failed to delete account: $e')),
+                  );
+                }
+              }
+            },
+            child: const Text(
+              'Delete Permanently',
+              style: TextStyle(color: Colors.red),
+            ),
           ),
         ],
       ),
