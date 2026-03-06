@@ -46,3 +46,9 @@ app.*.map.json
 
 # Documentation
 /docs/PLAY_STORE_REQUIREMENTS.md
+
+# Firebase / Node
+node_modules/
+.firebase/
+.firebaserc
+functions/node_modules/
