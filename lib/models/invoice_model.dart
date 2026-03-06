@@ -9,6 +9,7 @@ class Invoice {
   final String invoiceNumber;
   final String docType; // "Invoice/Bill" or "Challan"
   final DateTime invoiceDate;
+  final DateTime? dueDate;
   final double totalAmount;
   final double paidAmount;
   final double outstandingAmount;
@@ -26,6 +27,7 @@ class Invoice {
     required this.invoiceNumber,
     required this.docType,
     required this.invoiceDate,
+    this.dueDate,
     required this.totalAmount,
     this.paidAmount = 0.0,
     required this.outstandingAmount,
@@ -47,6 +49,7 @@ class Invoice {
       docType: (data['docType'] ?? 'Invoice/Bill').toString(),
       invoiceDate:
           (data['invoiceDate'] as Timestamp?)?.toDate() ?? DateTime.now(),
+      dueDate: (data['dueDate'] as Timestamp?)?.toDate(),
       totalAmount: (data['totalAmount'] ?? 0).toDouble(),
       paidAmount: (data['paidAmount'] ?? 0).toDouble(),
       outstandingAmount: (data['outstandingAmount'] ?? 0).toDouble(),
@@ -66,6 +69,7 @@ class Invoice {
       'invoiceNumber': invoiceNumber,
       'docType': docType,
       'invoiceDate': Timestamp.fromDate(invoiceDate),
+      if (dueDate != null) 'dueDate': Timestamp.fromDate(dueDate!),
       'totalAmount': totalAmount,
       'paidAmount': paidAmount,
       'outstandingAmount': outstandingAmount,

@@ -9,6 +9,7 @@ import '../payments/payment_history_screen.dart';
 import '../ledger/party_ledger_screen.dart';
 import '../payments/record_payment_screen.dart';
 import 'add_sales_record_screen.dart';
+import '../../services/collections_agent_service.dart';
 
 class SalesScreen extends ConsumerStatefulWidget {
   const SalesScreen({super.key});
@@ -471,6 +472,14 @@ class _SalesScreenState extends ConsumerState<SalesScreen> {
                           );
                         },
                       ),
+                    if (!isPaid &&
+                        inv.dueDate != null &&
+                        inv.dueDate!.isBefore(DateTime.now()))
+                      IconButton(
+                        icon: const Icon(Icons.message, color: Colors.blue),
+                        tooltip: 'Send Reminder',
+                        onPressed: () => _sendReminder(inv),
+                      ),
                     IconButton(
                       icon: const Icon(Icons.delete_outline, color: Colors.red),
                       tooltip: 'Delete',
@@ -525,5 +534,44 @@ class _SalesScreenState extends ConsumerState<SalesScreen> {
         ],
       ),
     );
+  }
+
+  Future<void> _sendReminder(Invoice inv) async {
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) => const Center(child: CircularProgressIndicator()),
+    );
+
+    try {
+      // Calculate total party outstanding first
+      final query = InvoiceQuery(invoiceType: 'sales', partyId: inv.partyId);
+      final invoices = await ref.read(invoicesProvider(query).future);
+      final totalOutstanding = invoices.fold(
+        0.0,
+        (s, i) => s + i.outstandingAmount,
+      );
+
+      final reminderMsg = await ref
+          .read(collectionsAgentServiceProvider)
+          .generateReminder(inv, totalOutstanding);
+
+      if (!mounted) return;
+      Navigator.pop(context); // Close loader
+
+      await SharePlus.instance.share(
+        ShareParams(text: reminderMsg, subject: 'Invoice Reminder'),
+      );
+    } catch (e) {
+      if (mounted) {
+        Navigator.pop(context); // Close loader
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Failed to generate reminder: $e'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    }
   }
 }

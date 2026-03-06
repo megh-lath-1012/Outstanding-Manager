@@ -1,7 +1,6 @@
-import 'dart:convert';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:google_generative_ai/google_generative_ai.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:cloud_functions/cloud_functions.dart';
 import '../models/invoice_model.dart';
 import '../models/party_model.dart';
 import '../models/payment_model.dart';
@@ -16,9 +15,6 @@ final paymentAssistantServiceProvider = Provider<PaymentAssistantService>((
 class PaymentAssistantService {
   final Ref _ref;
 
-  // Ideally, get this from secure storage or env variables.
-  static const String _apiKey = String.fromEnvironment('GEMINI_API_KEY');
-
   PaymentAssistantService(this._ref);
 
   DocumentReference? get _userDoc => _ref.read(userDocProvider);
@@ -30,11 +26,7 @@ class PaymentAssistantService {
       throw Exception('User not authenticated.');
     }
 
-    if (_apiKey.isEmpty) {
-      throw Exception('Gemini API Key is not configured (GEMINI_API_KEY).');
-    }
-
-    // 1. Extract entities using Gemini API
+    // 1. Extract entities using Cloud Function
     final extractedData = await _extractEntities(prompt);
 
     final String partyName = extractedData['partyName'] as String;
@@ -71,42 +63,14 @@ class PaymentAssistantService {
   }
 
   Future<Map<String, dynamic>> _extractEntities(String prompt) async {
-    final model = GenerativeModel(
-      model: 'gemini-1.5-pro',
-      apiKey: _apiKey,
-      generationConfig: GenerationConfig(responseMimeType: 'application/json'),
-    );
-
-    final instruction =
-        '''
-You are an intelligent payment recording assistant. Extract the following entities from the natural language text and return them strictly in JSON format.
-
-{
-  "partyName": "The exact name of the customer or supplier (e.g., John Smith, Acme Corp)",
-  "amount": The numeric value of the amount paid or received without currency symbols (e.g., 500.0),
-  "paymentMethod": "One of these exact string values: 'cash', 'bank_transfer', 'cheque', 'upi', 'card', 'other'"
-}
-
-If the payment method is not clearly specified, default to 'other'. Do not include extra text, just the raw JSON output.
-Text: "$prompt"
-''';
-
-    final response = await model.generateContent([Content.text(instruction)]);
-    final responseText = response.text;
-
-    if (responseText == null || responseText.isEmpty) {
-      throw Exception('Failed to extract entities from prompt.');
-    }
-
     try {
-      return jsonDecode(responseText) as Map<String, dynamic>;
+      final result = await FirebaseFunctions.instanceFor(
+        region: 'asia-south1',
+      ).httpsCallable('processPaymentAssistant').call({'prompt': prompt});
+
+      return Map<String, dynamic>.from(result.data);
     } catch (e) {
-      // In case the model wrapped it in markdown code blocks
-      final cleanedText = responseText
-          .replaceAll('```json', '')
-          .replaceAll('```', '')
-          .trim();
-      return jsonDecode(cleanedText) as Map<String, dynamic>;
+      throw Exception('Error calling Payment Assistant Cloud Function: $e');
     }
   }
 
@@ -114,9 +78,6 @@ Text: "$prompt"
     DocumentReference userDoc,
     String partyName,
   ) async {
-    // Attempting an exact, although case-insensitive if possible, search.
-    // Firestore doesn't do native precise case-insensitive easily without secondary arrays.
-    // Fetching all might be needed if party lists are small, but let's do a direct query first.
     final snapshot = await userDoc.collection('parties').get();
 
     try {
@@ -177,9 +138,6 @@ Text: "$prompt"
       );
     }
 
-    // Validation: Check total allocated matches (or at least doesn't exceed) amount
-    // If remainingAmount > 0, it means the payment amount was greater than the total outstanding balance.
-    // The requirements say: "Validation: Ensure the total allocated equals the total payment and never exceeds an invoice's outstandingAmount."
     if (remainingAmount > 0.01) {
       throw Exception(
         'Payment amount (\$amount) exceeds total outstanding balance for ${party.name}.',
