@@ -559,7 +559,8 @@ class _SalesScreenState extends ConsumerState<SalesScreen> {
       if (!mounted) return;
       Navigator.pop(context); // Close loader
 
-      await SharePlus.instance.share(reminderMsg, subject: 'Invoice Reminder');
+      await SharePlus.instance.share(
+          ShareParams(text: reminderMsg, subject: 'Invoice Reminder'));
     } catch (e) {
       if (mounted) {
         Navigator.pop(context); // Close loader

@@ -1,24 +1,18 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_generative_ai/google_generative_ai.dart';
 import '../models/invoice_model.dart';
-import '../providers/firebase_providers.dart';
 
 final collectionsAgentServiceProvider = Provider<CollectionsAgentService>((
   ref,
 ) {
-  return CollectionsAgentService(ref);
+  return CollectionsAgentService();
 });
 
 class CollectionsAgentService {
-  final Ref _ref;
-
   // Ideally, get this from secure storage or env variables.
   static const String _apiKey = String.fromEnvironment('GEMINI_API_KEY');
 
-  CollectionsAgentService(this._ref);
-
-  DocumentReference? get _userDoc => _ref.read(userDocProvider);
+  CollectionsAgentService();
 
   Future<String> generateReminder(
     Invoice invoice,
