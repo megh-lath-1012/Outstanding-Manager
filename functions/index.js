@@ -129,6 +129,57 @@ Text: "${prompt}"
     }
 });
 
+exports.rapidFinancialEntry = onCall({ secrets: [geminiApiKey] }, async (request) => {
+    if (!request.auth) {
+        throw new HttpsError("unauthenticated", "The function must be called while authenticated.");
+    }
+
+    const { prompt } = request.data;
+    if (!prompt) {
+        throw new HttpsError("invalid-argument", "Missing prompt.");
+    }
+
+    const apiKey = geminiApiKey.value();
+    const genAI = new GoogleGenerativeAI(apiKey);
+    const model = genAI.getGenerativeModel({
+        model: "gemini-1.5-pro",
+        generationConfig: { responseMimeType: "application/json" },
+    });
+
+    const instruction = `
+You are a Rapid Financial Entry Agent. Your job is to extract transaction details from the user's prompt.
+Assume the input contains a full transaction.
+
+Return strictly in JSON format:
+{
+  "type": "sale" | "purchase" | "payment",
+  "partyName": "extracted name of the person or business",
+  "amount": numeric_value,
+  "notes": "brief summary",
+  "invoiceNumber": "if mentioned, else null",
+  "date": "ISO date if mentioned, else null",
+  "paymentMethod": "if it's a payment, one of: 'cash', 'bank_transfer', 'cheque', 'upi', 'card', 'other'. Else null"
+}
+
+Examples:
+- "50000 Canopas" -> {"type": "payment", "partyName": "Canopas", "amount": 50000, ...}
+- "Purchase 10k from New Vendor" -> {"type": "purchase", "partyName": "New Vendor", "amount": 10000, ...}
+- "Sold items for 500 to ABC" -> {"type": "sale", "partyName": "ABC", "amount": 500, ...}
+
+Text: "${prompt}"
+  `;
+
+    try {
+        const result = await model.generateContent(instruction);
+        const response = await result.response;
+        const text = response.text();
+        return JSON.parse(text);
+    } catch (error) {
+        console.error("Gemini API Error:", error);
+        throw new HttpsError("internal", "Error calling Gemini API.");
+    }
+});
+
 exports.processTransactionAssistant = onCall({ secrets: [geminiApiKey] }, async (request) => {
     if (!request.auth) {
         throw new HttpsError("unauthenticated", "The function must be called while authenticated.");

@@ -19,6 +19,67 @@ class PaymentAssistantService {
 
   DocumentReference? get _userDoc => _ref.read(userDocProvider);
 
+  /// Main entry point for the "Rapid Financial Entry Agent"
+  Future<Map<String, dynamic>> processRapidEntry(String prompt) async {
+    final userDoc = _userDoc;
+    if (userDoc == null) throw Exception('User not authenticated.');
+
+    // 1. Call the "Aggressive Parsing" Cloud Function
+    final extracted = await _callRapidEntryFunction(prompt);
+    
+    final String type = extracted['type']; // 'sale', 'purchase', 'payment'
+    final String partyName = extracted['partyName'];
+    final double amount = (extracted['amount'] as num).toDouble();
+
+    // 2. Party Intelligence: Fuzzy search
+    final party = await _findPartyByName(userDoc, partyName);
+    
+    if (party == null) {
+      // Return flag to create party
+      return {
+        ...extracted,
+        'shouldCreateParty': true,
+        'matchedParty': null,
+        'allocations': null,
+      };
+    }
+
+    // 3. Silent Allocation (if payment)
+    List<Map<String, dynamic>>? allocations;
+    if (type == 'payment') {
+      try {
+        final allocObjects = await _allocatePayment(userDoc, party, amount);
+        allocations = allocObjects.map((a) => {
+          'invoiceId': a.invoiceId,
+          'invoiceNumber': a.invoiceNumber,
+          'allocatedAmount': a.allocatedAmount,
+        }).toList();
+      } catch (e) {
+        // If allocation fails (e.g. no invoices), we might still want to record as unallocated
+        // but for now let's just return empty allocations or handle error
+        allocations = [];
+      }
+    }
+
+    return {
+      ...extracted,
+      'shouldCreateParty': false,
+      'matchedParty': party,
+      'allocations': allocations,
+    };
+  }
+
+  Future<Map<String, dynamic>> _callRapidEntryFunction(String prompt) async {
+    try {
+      final result = await FirebaseFunctions.instanceFor(region: 'asia-south1')
+          .httpsCallable('rapidFinancialEntry')
+          .call({'prompt': prompt});
+      return Map<String, dynamic>.from(result.data);
+    } catch (e) {
+      throw Exception('Extraction failed: $e');
+    }
+  }
+
   /// Processes natural language prompt and returns formatted JSON map for [recordPayment]
   Future<Map<String, dynamic>> processPaymentPrompt(String prompt) async {
     final userDoc = _userDoc;
@@ -98,15 +159,24 @@ class PaymentAssistantService {
 
     try {
       final doc = snapshot.docs.firstWhere(
-        (doc) => (doc.data()['name'] as String).toLowerCase().contains(
-          partyName.toLowerCase(),
-        ),
+        (doc) => (doc.data()['name'] as String).toLowerCase() == partyName.toLowerCase() ||
+                (doc.data()['name'] as String).toLowerCase().contains(partyName.toLowerCase()),
       );
       return Party.fromFirestore(doc);
     } catch (e) {
-      return null;
+      // Try startsWith as fallback
+      try {
+        final doc = snapshot.docs.firstWhere(
+          (doc) => (doc.data()['name'] as String).toLowerCase().startsWith(partyName.toLowerCase().substring(0, min(3, partyName.length))),
+        );
+        return Party.fromFirestore(doc);
+      } catch (_) {
+        return null;
+      }
     }
   }
+
+  int min(int a, int b) => a < b ? a : b;
 
   Future<List<PaymentAllocation>> _allocatePayment(
     DocumentReference userDoc,
