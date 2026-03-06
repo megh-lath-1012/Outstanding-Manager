@@ -12,10 +12,7 @@ import '../../../providers/party_provider.dart';
 import '../../../providers/invoice_provider.dart';
 import '../../../providers/auth_provider.dart';
 
-enum ChatStep {
-  input,
-  review,
-}
+enum ChatStep { input, review }
 
 class PaymentAssistantDialog extends ConsumerStatefulWidget {
   const PaymentAssistantDialog({super.key});
@@ -25,11 +22,11 @@ class PaymentAssistantDialog extends ConsumerStatefulWidget {
       _PaymentAssistantDialogState();
 }
 
-class _PaymentAssistantDialogState
-    extends ConsumerState<PaymentAssistantDialog> with TickerProviderStateMixin {
+class _PaymentAssistantDialogState extends ConsumerState<PaymentAssistantDialog>
+    with TickerProviderStateMixin {
   final _controller = TextEditingController();
   final ScrollController _scrollController = ScrollController();
-  
+
   ChatStep _step = ChatStep.input;
   bool _isLoading = false;
   Map<String, dynamic>? _result;
@@ -79,14 +76,23 @@ class _PaymentAssistantDialogState
     try {
       final assistant = ref.read(paymentAssistantServiceProvider);
       _result = await assistant.processRapidEntry(_controller.text.trim());
-      
+
       setState(() {
         _step = ChatStep.review;
       });
       _scrollToBottom();
     } catch (e) {
+      String errorMessage = e.toString();
+      if (errorMessage.contains('Extraction failed') ||
+          errorMessage.contains('FirebaseFunctionsException')) {
+        errorMessage =
+            "I'm having trouble connecting to my AI brain. Please try again.";
+      } else if (errorMessage.length > 80) {
+        errorMessage = "An unexpected error occurred. Please try again.";
+      }
+
       setState(() {
-        _error = e.toString();
+        _error = errorMessage;
       });
     } finally {
       setState(() => _isLoading = false);
@@ -102,13 +108,16 @@ class _PaymentAssistantDialogState
     try {
       final type = _result!['type'];
       final bool shouldCreateParty = _result!['shouldCreateParty'] ?? false;
-      
+
       String partyId;
       String partyName;
-      
+
       if (shouldCreateParty) {
         partyName = _result!['partyName'];
-        partyId = await _createParty(partyName, type == 'purchase' ? 'supplier' : 'customer');
+        partyId = await _createParty(
+          partyName,
+          type == 'purchase' ? 'supplier' : 'customer',
+        );
       } else {
         final party = _result!['matchedParty'] as Party;
         partyId = party.id;
@@ -120,14 +129,16 @@ class _PaymentAssistantDialogState
       } else {
         await _recordInvoice(partyId, partyName);
       }
-      
+
       if (mounted) {
         Navigator.pop(context);
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             backgroundColor: Colors.green.shade800,
             behavior: SnackBarBehavior.floating,
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(10),
+            ),
             content: Row(
               children: [
                 const Icon(Icons.check_circle, color: Colors.white),
@@ -139,8 +150,12 @@ class _PaymentAssistantDialogState
         );
       }
     } catch (e) {
+      String errorMessage = e.toString();
+      if (errorMessage.length > 80) {
+        errorMessage = "An error occurred while saving. Please try again.";
+      }
       setState(() {
-        _error = e.toString();
+        _error = errorMessage;
         _isLoading = false;
       });
     }
@@ -168,8 +183,14 @@ class _PaymentAssistantDialogState
       id: '',
       partyId: partyId,
       partyName: partyName,
-      paymentType: _result!['paymentType'] ?? (_result!['matchedParty']?.partyType == 'supplier' ? 'payment' : 'receipt'),
-      paymentDate: _result!['date'] != null ? DateTime.parse(_result!['date']) : DateTime.now(),
+      paymentType:
+          _result!['paymentType'] ??
+          (_result!['matchedParty']?.partyType == 'supplier'
+              ? 'payment'
+              : 'receipt'),
+      paymentDate: _result!['date'] != null
+          ? DateTime.parse(_result!['date'])
+          : DateTime.now(),
       totalAmount: (_result!['amount'] as num).toDouble(),
       paymentMethod: _result!['paymentMethod'] ?? 'other',
       createdAt: DateTime.now(),
@@ -179,11 +200,13 @@ class _PaymentAssistantDialogState
     final List<PaymentAllocation> allocations = [];
     if (_result!['allocations'] != null) {
       for (var a in (_result!['allocations'] as List)) {
-        allocations.add(PaymentAllocation(
-          invoiceId: a['invoiceId'],
-          invoiceNumber: a['invoiceNumber'],
-          allocatedAmount: (a['allocatedAmount'] as num).toDouble(),
-        ));
+        allocations.add(
+          PaymentAllocation(
+            invoiceId: a['invoiceId'],
+            invoiceNumber: a['invoiceNumber'],
+            allocatedAmount: (a['allocatedAmount'] as num).toDouble(),
+          ),
+        );
       }
     }
 
@@ -197,9 +220,13 @@ class _PaymentAssistantDialogState
       partyId: partyId,
       partyName: partyName,
       invoiceType: _result!['type'] == 'sale' ? 'sales' : 'purchase',
-      invoiceNumber: _result!['invoiceNumber'] ?? 'INV-${DateTime.now().millisecondsSinceEpoch}',
+      invoiceNumber:
+          _result!['invoiceNumber'] ??
+          'INV-${DateTime.now().millisecondsSinceEpoch}',
       docType: 'Invoice/Bill',
-      invoiceDate: _result!['date'] != null ? DateTime.parse(_result!['date']) : DateTime.now(),
+      invoiceDate: _result!['date'] != null
+          ? DateTime.parse(_result!['date'])
+          : DateTime.now(),
       dueDate: DateTime.now().add(const Duration(days: 30)),
       totalAmount: (_result!['amount'] as num).toDouble(),
       paidAmount: 0.0,
@@ -224,10 +251,14 @@ class _PaymentAssistantDialogState
         filter: ImageFilter.blur(sigmaX: 20, sigmaY: 20),
         child: Container(
           decoration: BoxDecoration(
-            color: isDark ? Colors.black.withValues(alpha: 0.7) : Colors.white.withValues(alpha: 0.8),
+            color: isDark
+                ? Colors.black.withValues(alpha: 0.7)
+                : Colors.white.withValues(alpha: 0.8),
             borderRadius: const BorderRadius.vertical(top: Radius.circular(32)),
             border: Border.all(
-              color: (isDark ? Colors.white : Colors.black).withValues(alpha: 0.1),
+              color: (isDark ? Colors.white : Colors.black).withValues(
+                alpha: 0.1,
+              ),
             ),
           ),
           padding: EdgeInsets.only(
@@ -244,12 +275,14 @@ class _PaymentAssistantDialogState
                 width: 40,
                 height: 4,
                 decoration: BoxDecoration(
-                  color: (isDark ? Colors.white : Colors.black).withValues(alpha: 0.2),
+                  color: (isDark ? Colors.white : Colors.black).withValues(
+                    alpha: 0.2,
+                  ),
                   borderRadius: BorderRadius.circular(2),
                 ),
               ),
               const SizedBox(height: 12),
-              
+
               // Header
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 20),
@@ -265,11 +298,15 @@ class _PaymentAssistantDialogState
                         ),
                         borderRadius: BorderRadius.circular(12),
                       ),
-                      child: const Icon(Icons.bolt, color: Colors.white, size: 20),
+                      child: const Icon(
+                        Icons.bolt,
+                        color: Colors.white,
+                        size: 20,
+                      ),
                     ),
                     const SizedBox(width: 12),
                     Text(
-                      'Rapid Entry Agent',
+                      'Pulse AI Assistant',
                       style: theme.textTheme.titleLarge?.copyWith(
                         fontWeight: FontWeight.bold,
                         letterSpacing: 0.5,
@@ -280,7 +317,8 @@ class _PaymentAssistantDialogState
                       onPressed: () => Navigator.pop(context),
                       icon: Icon(
                         Icons.close,
-                        color: (isDark ? Colors.white : Colors.black).withValues(alpha: 0.5),
+                        color: (isDark ? Colors.white : Colors.black)
+                            .withValues(alpha: 0.5),
                       ),
                     ),
                   ],
@@ -296,7 +334,9 @@ class _PaymentAssistantDialogState
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
-                      _aiBubble("I'm ready for your entry. Try something like '50000 Canopas' or 'Purchase 10k from New Vendor'."),
+                      _aiBubble(
+                        "Hi! I'm your Pulse Assistant. Describe your entry (e.g., '50k from Canopas' or 'Purchase 10k from New Vendor') and I'll handle the record for you.",
+                      ),
                       if (_result != null) _userBubble(_controller.text),
                       const SizedBox(height: 16),
                       AnimatedSwitcher(
@@ -318,7 +358,7 @@ class _PaymentAssistantDialogState
   }
 
   Widget _errorIndicator() {
-     return Padding(
+    return Padding(
       padding: const EdgeInsets.only(top: 12),
       child: Text(
         _error!,
@@ -344,13 +384,17 @@ class _PaymentAssistantDialogState
             bottomLeft: Radius.circular(4),
           ),
           border: Border.all(
-            color: (isDark ? Colors.white : Colors.black).withValues(alpha: 0.05),
+            color: (isDark ? Colors.white : Colors.black).withValues(
+              alpha: 0.05,
+            ),
           ),
         ),
         child: Text(
           text,
           style: TextStyle(
-            color: isDark ? Colors.white.withValues(alpha: 0.9) : Colors.black.withValues(alpha: 0.8),
+            color: isDark
+                ? Colors.white.withValues(alpha: 0.9)
+                : Colors.black.withValues(alpha: 0.8),
             fontSize: 15,
             height: 1.4,
           ),
@@ -393,7 +437,9 @@ class _PaymentAssistantDialogState
         margin: const EdgeInsets.only(bottom: 12),
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
         decoration: BoxDecoration(
-          color: Theme.of(context).brightness == Brightness.dark ? const Color(0xFF2D2D2D) : const Color(0xFFF3F4F6),
+          color: Theme.of(context).brightness == Brightness.dark
+              ? const Color(0xFF2D2D2D)
+              : const Color(0xFFF3F4F6),
           borderRadius: BorderRadius.circular(16),
         ),
         child: Row(
@@ -403,7 +449,8 @@ class _PaymentAssistantDialogState
               animation: _typingController,
               builder: (context, child) {
                 double delay = index * 0.2;
-                double value = (sin((_typingController.value * 2 * pi) + delay) + 1) / 2;
+                double value =
+                    (sin((_typingController.value * 2 * pi) + delay) + 1) / 2;
                 return Container(
                   width: 6,
                   height: 6,
@@ -423,7 +470,7 @@ class _PaymentAssistantDialogState
 
   Widget _buildCurrentStep() {
     if (_isLoading) return const SizedBox.shrink();
-    
+
     switch (_step) {
       case ChatStep.input:
         return _buildInputArea();
@@ -436,7 +483,9 @@ class _PaymentAssistantDialogState
     bool isDark = Theme.of(context).brightness == Brightness.dark;
     return Container(
       decoration: BoxDecoration(
-        color: isDark ? Colors.white.withValues(alpha: 0.05) : Colors.black.withValues(alpha: 0.03),
+        color: isDark
+            ? Colors.white.withValues(alpha: 0.05)
+            : Colors.black.withValues(alpha: 0.03),
         borderRadius: BorderRadius.circular(24),
         border: Border.all(color: Colors.blue.withValues(alpha: 0.1)),
       ),
@@ -451,7 +500,10 @@ class _PaymentAssistantDialogState
               decoration: const InputDecoration(
                 hintText: 'Type entry...',
                 border: InputBorder.none,
-                contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                contentPadding: EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 12,
+                ),
               ),
               onSubmitted: (_) => _processRapidEntry(),
             ),
@@ -468,19 +520,28 @@ class _PaymentAssistantDialogState
   Widget _buildReviewCard() {
     final fmt = NumberFormat.currency(locale: 'en_IN', symbol: '₹');
     final bool shouldCreate = _result!['shouldCreateParty'];
-    final String partyName = shouldCreate ? _result!['partyName'] : (_result!['matchedParty'] as Party).name;
+    final String partyName = shouldCreate
+        ? _result!['partyName']
+        : (_result!['matchedParty'] as Party).name;
     final type = _result!['type'];
     final amount = (_result!['amount'] as num).toDouble();
-    
+
     String message = "";
     if (shouldCreate) {
-      message = "New Party '$partyName' detected. Creating record and adding ${fmt.format(amount)} ${type == 'payment' ? 'Payment' : (type == 'sale' ? 'Sale' : 'Purchase')}. Save?";
+      message =
+          "New Party '$partyName' detected. Creating record and adding ${fmt.format(amount)} ${type == 'payment' ? 'Payment' : (type == 'sale' ? 'Sale' : 'Purchase')}. Save?";
     } else {
-      String action = type == 'payment' ? 'Receipt' : (type == 'sale' ? 'Sale' : 'Purchase');
-      String extra = (type == 'payment' && _result!['allocations'] != null && (_result!['allocations'] as List).isNotEmpty)
+      String action = type == 'payment'
+          ? 'Receipt'
+          : (type == 'sale' ? 'Sale' : 'Purchase');
+      String extra =
+          (type == 'payment' &&
+              _result!['allocations'] != null &&
+              (_result!['allocations'] as List).isNotEmpty)
           ? " and paying off Invoice #${(_result!['allocations'] as List).first['invoiceNumber']}"
           : "";
-      message = "Found '$partyName'. Recording ${fmt.format(amount)} $action$extra. Save?";
+      message =
+          "Found '$partyName'. Recording ${fmt.format(amount)} $action$extra. Save?";
     }
 
     return Column(
@@ -501,9 +562,17 @@ class _PaymentAssistantDialogState
               onPressed: _confirmAndSave,
               style: ElevatedButton.styleFrom(
                 backgroundColor: const Color(0xFF6366F1),
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(16),
+                ),
               ),
-              child: const Text('Confirm & Save', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+              child: const Text(
+                'Confirm & Save',
+                style: TextStyle(
+                  color: Colors.white,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
             ),
           ],
         ),

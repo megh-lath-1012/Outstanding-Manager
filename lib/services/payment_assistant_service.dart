@@ -26,14 +26,14 @@ class PaymentAssistantService {
 
     // 1. Call the "Aggressive Parsing" Cloud Function
     final extracted = await _callRapidEntryFunction(prompt);
-    
+
     final String type = extracted['type']; // 'sale', 'purchase', 'payment'
     final String partyName = extracted['partyName'];
     final double amount = (extracted['amount'] as num).toDouble();
 
     // 2. Party Intelligence: Fuzzy search
     final party = await _findPartyByName(userDoc, partyName);
-    
+
     if (party == null) {
       // Return flag to create party
       return {
@@ -49,11 +49,15 @@ class PaymentAssistantService {
     if (type == 'payment') {
       try {
         final allocObjects = await _allocatePayment(userDoc, party, amount);
-        allocations = allocObjects.map((a) => {
-          'invoiceId': a.invoiceId,
-          'invoiceNumber': a.invoiceNumber,
-          'allocatedAmount': a.allocatedAmount,
-        }).toList();
+        allocations = allocObjects
+            .map(
+              (a) => {
+                'invoiceId': a.invoiceId,
+                'invoiceNumber': a.invoiceNumber,
+                'allocatedAmount': a.allocatedAmount,
+              },
+            )
+            .toList();
       } catch (e) {
         // If allocation fails (e.g. no invoices), we might still want to record as unallocated
         // but for now let's just return empty allocations or handle error
@@ -71,9 +75,9 @@ class PaymentAssistantService {
 
   Future<Map<String, dynamic>> _callRapidEntryFunction(String prompt) async {
     try {
-      final result = await FirebaseFunctions.instanceFor(region: 'asia-south1')
-          .httpsCallable('rapidFinancialEntry')
-          .call({'prompt': prompt});
+      final result = await FirebaseFunctions.instanceFor(
+        region: 'asia-south1',
+      ).httpsCallable('rapidFinancialEntry').call({'prompt': prompt});
       return Map<String, dynamic>.from(result.data);
     } catch (e) {
       throw Exception('Extraction failed: $e');
@@ -159,15 +163,21 @@ class PaymentAssistantService {
 
     try {
       final doc = snapshot.docs.firstWhere(
-        (doc) => (doc.data()['name'] as String).toLowerCase() == partyName.toLowerCase() ||
-                (doc.data()['name'] as String).toLowerCase().contains(partyName.toLowerCase()),
+        (doc) =>
+            (doc.data()['name'] as String).toLowerCase() ==
+                partyName.toLowerCase() ||
+            (doc.data()['name'] as String).toLowerCase().contains(
+              partyName.toLowerCase(),
+            ),
       );
       return Party.fromFirestore(doc);
     } catch (e) {
       // Try startsWith as fallback
       try {
         final doc = snapshot.docs.firstWhere(
-          (doc) => (doc.data()['name'] as String).toLowerCase().startsWith(partyName.toLowerCase().substring(0, min(3, partyName.length))),
+          (doc) => (doc.data()['name'] as String).toLowerCase().startsWith(
+            partyName.toLowerCase().substring(0, min(3, partyName.length)),
+          ),
         );
         return Party.fromFirestore(doc);
       } catch (_) {

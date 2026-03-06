@@ -87,7 +87,7 @@ class DashboardScreen extends ConsumerWidget {
       ),
       floatingActionButton: FloatingActionButton.extended(
         onPressed: () => _showAssistant(context),
-        label: const Text('AI Assistant'),
+        label: const Text('Pulse Assistant'),
         icon: const Icon(Icons.auto_awesome),
         backgroundColor: Colors.blue.shade700,
         foregroundColor: Colors.white,
