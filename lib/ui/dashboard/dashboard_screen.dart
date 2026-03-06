@@ -6,6 +6,8 @@ import '../../providers/dashboard_provider.dart';
 import '../../models/dashboard_metrics.dart';
 import '../../models/invoice_model.dart';
 import '../../models/payment_model.dart';
+import '../../services/cashflow_service.dart';
+import 'widgets/cashflow_summary_widget.dart';
 
 class DashboardScreen extends ConsumerWidget {
   const DashboardScreen({super.key});
@@ -14,63 +16,72 @@ class DashboardScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final metricsAsync = ref.watch(dashboardMetricsProvider);
     final recentAsync = ref.watch(recentActivityProvider);
-    final currencyFormat = NumberFormat.currency(
-      locale: 'en_IN',
-      symbol: '\u20b9',
-    );
+    final currencyFormat = NumberFormat.currency(locale: 'en_IN', symbol: '₹');
 
     return Scaffold(
       appBar: AppBar(title: const Text('Dashboard')),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // Metrics cards
-            metricsAsync.when(
-              data: (metrics) =>
-                  _buildMetrics(context, metrics, currencyFormat),
-              loading: () => const Center(child: CircularProgressIndicator()),
-              error: (e, s) => Text('Error: $e'),
-            ),
-            const SizedBox(height: 24),
+      body: RefreshIndicator(
+        onRefresh: () async {
+          ref.invalidate(dashboardMetricsProvider);
+          ref.invalidate(recentActivityProvider);
+          // ignore: unused_result
+          ref.refresh(cashflowForecastProvider);
+        },
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.all(16),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // Metrics cards
+              metricsAsync.when(
+                data: (metrics) =>
+                    _buildMetrics(context, metrics, currencyFormat),
+                loading: () => const Center(child: CircularProgressIndicator()),
+                error: (e, s) => Text('Error: $e'),
+              ),
+              const SizedBox(height: 24),
 
-            // Recent Activity
-            Text(
-              'Recent Activity',
-              style: Theme.of(
-                context,
-              ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
-            ),
-            const SizedBox(height: 12),
-            recentAsync.when(
-              data: (activities) {
-                if (activities.isEmpty) {
-                  return Container(
-                    padding: const EdgeInsets.all(32),
-                    alignment: Alignment.center,
-                    child: Text(
-                      'No activity yet',
-                      style: TextStyle(color: Colors.grey.shade500),
-                    ),
+              // Smart Forecasting
+              const CashflowSummaryWidget(),
+              const SizedBox(height: 24),
+
+              // Recent Activity
+              Text(
+                'Recent Activity',
+                style: Theme.of(
+                  context,
+                ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
+              ),
+              const SizedBox(height: 12),
+              recentAsync.when(
+                data: (activities) {
+                  if (activities.isEmpty) {
+                    return Container(
+                      padding: const EdgeInsets.all(32),
+                      alignment: Alignment.center,
+                      child: Text(
+                        'No activity yet',
+                        style: TextStyle(color: Colors.grey.shade500),
+                      ),
+                    );
+                  }
+                  return Column(
+                    children: activities
+                        .map(
+                          (activity) => _buildActivityTile(
+                            context,
+                            activity,
+                            currencyFormat,
+                          ),
+                        )
+                        .toList(),
                   );
-                }
-                return Column(
-                  children: activities
-                      .map(
-                        (activity) => _buildActivityTile(
-                          context,
-                          activity,
-                          currencyFormat,
-                        ),
-                      )
-                      .toList(),
-                );
-              },
-              loading: () => const Center(child: CircularProgressIndicator()),
-              error: (e, s) => Text('Error: $e'),
-            ),
-          ],
+                },
+                loading: () => const Center(child: CircularProgressIndicator()),
+                error: (e, s) => Text('Error: $e'),
+              ),
+            ],
+          ),
         ),
       ),
     );
