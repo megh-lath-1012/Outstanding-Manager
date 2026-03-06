@@ -28,6 +28,7 @@ class _AddPurchaseRecordScreenState
   Party? _selectedParty;
   String _docType = 'Invoice/Bill';
   DateTime _invoiceDate = DateTime.now();
+  DateTime? _dueDate;
   bool _isLoading = false;
 
   @override
@@ -71,6 +72,7 @@ class _AddPurchaseRecordScreenState
         invoiceNumber: _invoiceNumberController.text.trim(),
         docType: _docType,
         invoiceDate: _invoiceDate,
+        dueDate: _dueDate,
         totalAmount: totalAmount,
         paidAmount: advanceAmount,
         outstandingAmount: totalAmount - advanceAmount,
@@ -169,6 +171,47 @@ class _AddPurchaseRecordScreenState
                           DateFormat('dd MMM yyyy').format(_invoiceDate),
                         ),
                       ),
+                    ),
+                    const SizedBox(height: 16),
+                    // Due Date
+                    Row(
+                      children: [
+                        Expanded(
+                          child: InkWell(
+                            onTap: () async {
+                              final date = await showDatePicker(
+                                context: context,
+                                initialDate: _dueDate ?? _invoiceDate,
+                                firstDate: DateTime(2000),
+                                lastDate: DateTime(2100),
+                              );
+                              if (date != null) {
+                                setState(() => _dueDate = date);
+                              }
+                            },
+                            child: InputDecorator(
+                              decoration: InputDecoration(
+                                labelText: 'Due Date (optional)',
+                                prefixIcon: const Icon(Icons.event, size: 18),
+                                suffixIcon: _dueDate != null
+                                    ? IconButton(
+                                        icon: const Icon(Icons.clear, size: 18),
+                                        onPressed: () => setState(() => _dueDate = null),
+                                      )
+                                    : null,
+                              ),
+                              child: Text(
+                                _dueDate != null
+                                    ? DateFormat('dd MMM yyyy').format(_dueDate!)
+                                    : 'Select due date',
+                                style: TextStyle(
+                                  color: _dueDate != null ? null : Colors.grey.shade600,
+                                ),
+                              ),
+                            ),
+                          ),
+                        ),
+                      ],
                     ),
                     const SizedBox(height: 16),
                     Row(
