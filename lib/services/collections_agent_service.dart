@@ -1,25 +1,27 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_generative_ai/google_generative_ai.dart';
 import '../models/invoice_model.dart';
+import 'remote_config_service.dart';
 
 final collectionsAgentServiceProvider = Provider<CollectionsAgentService>((
   ref,
 ) {
-  return CollectionsAgentService();
+  return CollectionsAgentService(ref);
 });
 
 class CollectionsAgentService {
-  // Ideally, get this from secure storage or env variables.
-  static const String _apiKey = String.fromEnvironment('GEMINI_API_KEY');
+  final Ref _ref;
 
-  CollectionsAgentService();
+  CollectionsAgentService(this._ref);
 
   Future<String> generateReminder(
     Invoice invoice,
     double totalPartyBalance,
   ) async {
-    if (_apiKey.isEmpty) {
-      throw Exception('Gemini API Key is not configured (GEMINI_API_KEY).');
+    final apiKey = _ref.read(remoteConfigServiceProvider).geminiApiKey;
+
+    if (apiKey.isEmpty) {
+      throw Exception('Gemini API Key is not configured.');
     }
 
     if (invoice.dueDate == null) {
@@ -33,7 +35,7 @@ class CollectionsAgentService {
       throw Exception('Invoice is not overdue yet.');
     }
 
-    final model = GenerativeModel(model: 'gemini-1.5-pro', apiKey: _apiKey);
+    final model = GenerativeModel(model: 'gemini-1.5-pro', apiKey: apiKey);
 
     String toneInstruction;
     if (daysLate <= 7) {
