@@ -64,9 +64,9 @@ class PaymentAssistantService {
 
   Future<Map<String, dynamic>> _extractEntities(String prompt) async {
     try {
-      final result = await FirebaseFunctions.instanceFor(region: 'asia-south1')
-          .httpsCallable('processPaymentAssistant')
-          .call({'prompt': prompt});
+      final result = await FirebaseFunctions.instanceFor(
+        region: 'asia-south1',
+      ).httpsCallable('processPaymentAssistant').call({'prompt': prompt});
 
       return Map<String, dynamic>.from(result.data);
     } catch (e) {
