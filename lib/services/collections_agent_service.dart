@@ -4,7 +4,9 @@ import 'package:google_generative_ai/google_generative_ai.dart';
 import '../models/invoice_model.dart';
 import '../providers/firebase_providers.dart';
 
-final collectionsAgentServiceProvider = Provider<CollectionsAgentService>((ref) {
+final collectionsAgentServiceProvider = Provider<CollectionsAgentService>((
+  ref,
+) {
   return CollectionsAgentService(ref);
 });
 
@@ -18,7 +20,10 @@ class CollectionsAgentService {
 
   DocumentReference? get _userDoc => _ref.read(userDocProvider);
 
-  Future<String> generateReminder(Invoice invoice, double totalPartyBalance) async {
+  Future<String> generateReminder(
+    Invoice invoice,
+    double totalPartyBalance,
+  ) async {
     if (_apiKey.isEmpty) {
       throw Exception('Gemini API Key is not configured (GEMINI_API_KEY).');
     }
@@ -28,27 +33,28 @@ class CollectionsAgentService {
     }
 
     final daysLate = DateTime.now().difference(invoice.dueDate!).inDays;
-    
+
     // We only generate reminders for overdue invoices
     if (daysLate <= 0) {
       throw Exception('Invoice is not overdue yet.');
     }
 
-    final model = GenerativeModel(
-      model: 'gemini-1.5-pro',
-      apiKey: _apiKey,
-    );
+    final model = GenerativeModel(model: 'gemini-1.5-pro', apiKey: _apiKey);
 
     String toneInstruction;
     if (daysLate <= 7) {
-      toneInstruction = "Tone: Friendly, polite, assuming they just forgot. Casual reminder.";
+      toneInstruction =
+          "Tone: Friendly, polite, assuming they just forgot. Casual reminder.";
     } else if (daysLate <= 15) {
-      toneInstruction = "Tone: Professional, direct, asking for an immediate update.";
+      toneInstruction =
+          "Tone: Professional, direct, asking for an immediate update.";
     } else {
-      toneInstruction = "Tone: Firm but professional. Clearly state the total outstanding balance and the specific invoice number. Request immediate payment.";
+      toneInstruction =
+          "Tone: Firm but professional. Clearly state the total outstanding balance and the specific invoice number. Request immediate payment.";
     }
 
-    final prompt = '''
+    final prompt =
+        '''
 You are "Outstanding Management App", an automated collections agent for a small business. 
 Generate a professional WhatsApp/Email reminder message for a customer to pay their overdue invoice.
 

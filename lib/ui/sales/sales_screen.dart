@@ -472,7 +472,9 @@ class _SalesScreenState extends ConsumerState<SalesScreen> {
                           );
                         },
                       ),
-                    if (!isPaid && inv.dueDate != null && inv.dueDate!.isBefore(DateTime.now()))
+                    if (!isPaid &&
+                        inv.dueDate != null &&
+                        inv.dueDate!.isBefore(DateTime.now()))
                       IconButton(
                         icon: const Icon(Icons.message, color: Colors.blue),
                         tooltip: 'Send Reminder',
@@ -545,7 +547,10 @@ class _SalesScreenState extends ConsumerState<SalesScreen> {
       // Calculate total party outstanding first
       final query = InvoiceQuery(invoiceType: 'sales', partyId: inv.partyId);
       final invoices = await ref.read(invoicesProvider(query).future);
-      final totalOutstanding = invoices.fold(0.0, (s, i) => s + i.outstandingAmount);
+      final totalOutstanding = invoices.fold(
+        0.0,
+        (s, i) => s + i.outstandingAmount,
+      );
 
       final reminderMsg = await ref
           .read(collectionsAgentServiceProvider)

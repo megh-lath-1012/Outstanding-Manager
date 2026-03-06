@@ -204,16 +204,21 @@ class _AddSalesRecordScreenState extends ConsumerState<AddSalesRecordScreen> {
                                 suffixIcon: _dueDate != null
                                     ? IconButton(
                                         icon: const Icon(Icons.clear, size: 18),
-                                        onPressed: () => setState(() => _dueDate = null),
+                                        onPressed: () =>
+                                            setState(() => _dueDate = null),
                                       )
                                     : null,
                               ),
                               child: Text(
                                 _dueDate != null
-                                    ? DateFormat('dd MMM yyyy').format(_dueDate!)
+                                    ? DateFormat(
+                                        'dd MMM yyyy',
+                                      ).format(_dueDate!)
                                     : 'Select due date',
                                 style: TextStyle(
-                                  color: _dueDate != null ? null : Colors.grey.shade600,
+                                  color: _dueDate != null
+                                      ? null
+                                      : Colors.grey.shade600,
                                 ),
                               ),
                             ),
