@@ -7,7 +7,9 @@ import '../models/party_model.dart';
 import '../models/payment_model.dart';
 import '../providers/firebase_providers.dart';
 
-final paymentAssistantServiceProvider = Provider<PaymentAssistantService>((ref) {
+final paymentAssistantServiceProvider = Provider<PaymentAssistantService>((
+  ref,
+) {
   return PaymentAssistantService(ref);
 });
 
@@ -34,7 +36,7 @@ class PaymentAssistantService {
 
     // 1. Extract entities using Gemini API
     final extractedData = await _extractEntities(prompt);
-    
+
     final String partyName = extractedData['partyName'] as String;
     final double amount = (extractedData['amount'] as num).toDouble();
     final String paymentMethod = extractedData['paymentMethod'] as String;
@@ -47,7 +49,7 @@ class PaymentAssistantService {
 
     // 3. Fetch Unpaid Invoices and apply FIFO allocation
     final allocations = await _allocatePayment(userDoc, party, amount);
-    
+
     // 4. Return Output
     return {
       'partyId': party.id,
@@ -56,11 +58,15 @@ class PaymentAssistantService {
       'paymentDate': DateTime.now().toIso8601String(),
       'totalAmount': amount,
       'paymentMethod': paymentMethod,
-      'allocations': allocations.map((a) => {
-        'invoiceId': a.invoiceId,
-        'invoiceNumber': a.invoiceNumber,
-        'allocatedAmount': a.allocatedAmount,
-      }).toList(),
+      'allocations': allocations
+          .map(
+            (a) => {
+              'invoiceId': a.invoiceId,
+              'invoiceNumber': a.invoiceNumber,
+              'allocatedAmount': a.allocatedAmount,
+            },
+          )
+          .toList(),
     };
   }
 
@@ -68,12 +74,11 @@ class PaymentAssistantService {
     final model = GenerativeModel(
       model: 'gemini-1.5-pro',
       apiKey: _apiKey,
-      generationConfig: GenerationConfig(
-        responseMimeType: 'application/json',
-      )
+      generationConfig: GenerationConfig(responseMimeType: 'application/json'),
     );
 
-    final instruction = '''
+    final instruction =
+        '''
 You are an intelligent payment recording assistant. Extract the following entities from the natural language text and return them strictly in JSON format.
 
 {
@@ -88,7 +93,7 @@ Text: "$prompt"
 
     final response = await model.generateContent([Content.text(instruction)]);
     final responseText = response.text;
-    
+
     if (responseText == null || responseText.isEmpty) {
       throw Exception('Failed to extract entities from prompt.');
     }
@@ -97,20 +102,28 @@ Text: "$prompt"
       return jsonDecode(responseText) as Map<String, dynamic>;
     } catch (e) {
       // In case the model wrapped it in markdown code blocks
-      final cleanedText = responseText.replaceAll('```json', '').replaceAll('```', '').trim();
+      final cleanedText = responseText
+          .replaceAll('```json', '')
+          .replaceAll('```', '')
+          .trim();
       return jsonDecode(cleanedText) as Map<String, dynamic>;
     }
   }
 
-  Future<Party?> _findPartyByName(DocumentReference userDoc, String partyName) async {
+  Future<Party?> _findPartyByName(
+    DocumentReference userDoc,
+    String partyName,
+  ) async {
     // Attempting an exact, although case-insensitive if possible, search.
     // Firestore doesn't do native precise case-insensitive easily without secondary arrays.
     // Fetching all might be needed if party lists are small, but let's do a direct query first.
     final snapshot = await userDoc.collection('parties').get();
-    
+
     try {
       final doc = snapshot.docs.firstWhere(
-        (doc) => (doc.data()['name'] as String).toLowerCase().contains(partyName.toLowerCase())
+        (doc) => (doc.data()['name'] as String).toLowerCase().contains(
+          partyName.toLowerCase(),
+        ),
       );
       return Party.fromFirestore(doc);
     } catch (e) {
@@ -119,8 +132,10 @@ Text: "$prompt"
   }
 
   Future<List<PaymentAllocation>> _allocatePayment(
-      DocumentReference userDoc, Party party, double amount) async {
-    
+    DocumentReference userDoc,
+    Party party,
+    double amount,
+  ) async {
     // Fetch unpaid/partial invoices
     final snapshot = await userDoc
         .collection('invoices')
@@ -129,7 +144,9 @@ Text: "$prompt"
         .orderBy('invoiceDate', descending: false) // oldest first
         .get();
 
-    final invoices = snapshot.docs.map((doc) => Invoice.fromFirestore(doc)).toList();
+    final invoices = snapshot.docs
+        .map((doc) => Invoice.fromFirestore(doc))
+        .toList();
 
     double remainingAmount = amount;
     List<PaymentAllocation> allocations = [];
@@ -138,31 +155,35 @@ Text: "$prompt"
       if (remainingAmount <= 0) break;
 
       double allocateToThis = invoice.outstandingAmount;
-      
+
       if (remainingAmount < invoice.outstandingAmount) {
-         allocateToThis = remainingAmount;
+        allocateToThis = remainingAmount;
       }
-      
+
       allocations.add(
         PaymentAllocation(
           invoiceId: invoice.id,
           invoiceNumber: invoice.invoiceNumber,
           allocatedAmount: allocateToThis,
-        )
+        ),
       );
 
       remainingAmount -= allocateToThis;
     }
 
     if (allocations.isEmpty) {
-      throw Exception('No outstanding invoices found for ${party.name} to allocate this payment.');
+      throw Exception(
+        'No outstanding invoices found for ${party.name} to allocate this payment.',
+      );
     }
 
     // Validation: Check total allocated matches (or at least doesn't exceed) amount
     // If remainingAmount > 0, it means the payment amount was greater than the total outstanding balance.
     // The requirements say: "Validation: Ensure the total allocated equals the total payment and never exceeds an invoice's outstandingAmount."
     if (remainingAmount > 0.01) {
-       throw Exception('Payment amount (\$amount) exceeds total outstanding balance for ${party.name}.');
+      throw Exception(
+        'Payment amount (\$amount) exceeds total outstanding balance for ${party.name}.',
+      );
     }
 
     return allocations;
