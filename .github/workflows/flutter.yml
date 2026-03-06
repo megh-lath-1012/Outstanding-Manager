@@ -25,7 +25,7 @@ jobs:
         run: dart format --output=none --set-exit-if-changed .
         
       - name: Analyze project source
-        run: flutter analyze --dart-define=GEMINI_API_KEY=${{ secrets.GEMINI_API_KEY }}
+        run: flutter analyze
         
       - name: Run tests
         run: flutter test --dart-define=GEMINI_API_KEY=${{ secrets.GEMINI_API_KEY }}
