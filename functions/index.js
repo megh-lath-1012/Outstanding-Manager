@@ -129,6 +129,47 @@ Text: "${prompt}"
     }
 });
 
+exports.processTransactionAssistant = onCall({ secrets: [geminiApiKey] }, async (request) => {
+    if (!request.auth) {
+        throw new HttpsError("unauthenticated", "The function must be called while authenticated.");
+    }
+
+    const { prompt, type } = request.data; // type: 'sales' or 'purchase'
+    if (!prompt || !type) {
+        throw new HttpsError("invalid-argument", "Missing prompt or type.");
+    }
+
+    const apiKey = geminiApiKey.value();
+    const genAI = new GoogleGenerativeAI(apiKey);
+    const model = genAI.getGenerativeModel({
+        model: "gemini-1.5-pro",
+        generationConfig: { responseMimeType: "application/json" },
+    });
+
+    const instruction = `
+You are an intelligent business assistant. Extract transaction details for a ${type} record from the text.
+Return strictly in JSON format:
+{
+  "totalAmount": numeric_value,
+  "notes": "brief summary of items/transaction",
+  "invoiceNumber": "if mentioned, else null",
+  "date": "ISO date for invoiceDate if mentioned, else null"
+}
+
+Text: "${prompt}"
+  `;
+
+    try {
+        const result = await model.generateContent(instruction);
+        const response = await result.response;
+        const text = response.text();
+        return JSON.parse(text);
+    } catch (error) {
+        console.error("Gemini API Error:", error);
+        throw new HttpsError("internal", "Error calling Gemini API.");
+    }
+});
+
 exports.analyzeCashflow = onCall({ secrets: [geminiApiKey] }, async (request) => {
     if (!request.auth) {
         throw new HttpsError("unauthenticated", "The function must be called while authenticated.");

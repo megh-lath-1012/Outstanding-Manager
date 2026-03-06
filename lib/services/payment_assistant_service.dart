@@ -74,6 +74,25 @@ class PaymentAssistantService {
     }
   }
 
+  /// Processes natural language prompt for Sales or Purchases
+  Future<Map<String, dynamic>> processTransactionPrompt({
+    required String prompt,
+    required String type,
+  }) async {
+    try {
+      final result = await FirebaseFunctions.instanceFor(
+        region: 'asia-south1',
+      ).httpsCallable('processTransactionAssistant').call({
+        'prompt': prompt,
+        'type': type,
+      });
+
+      return Map<String, dynamic>.from(result.data);
+    } catch (e) {
+      throw Exception('Error calling Transaction Assistant Cloud Function: $e');
+    }
+  }
+
   Future<Party?> _findPartyByName(
     DocumentReference userDoc,
     String partyName,
