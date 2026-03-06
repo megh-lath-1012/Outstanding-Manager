@@ -64,20 +64,19 @@ class PaymentRepository {
     if (userDoc == null) throw Exception('Not authenticated');
 
     // Validation
-    if (allocations.isEmpty) {
-      throw Exception('Please select at least one invoice to allocate.');
-    }
-    for (var alloc in allocations) {
-      if (alloc.allocatedAmount <= 0) {
-        throw Exception('All allocated amounts must be greater than 0.');
+    if (allocations.isNotEmpty) {
+      for (var alloc in allocations) {
+        if (alloc.allocatedAmount <= 0) {
+          throw Exception('All allocated amounts must be greater than 0.');
+        }
       }
-    }
-    double totalAllocated = allocations.fold(
-      0.0,
-      (s, a) => s + a.allocatedAmount,
-    );
-    if ((totalAllocated - payment.totalAmount).abs() > 0.01) {
-      throw Exception('Total allocated must equal total payment amount.');
+      double totalAllocated = allocations.fold(
+        0.0,
+        (s, a) => s + a.allocatedAmount,
+      );
+      if ((totalAllocated - payment.totalAmount).abs() > 0.01) {
+        throw Exception('Total allocated must equal total payment amount.');
+      }
     }
 
     // Save payment doc

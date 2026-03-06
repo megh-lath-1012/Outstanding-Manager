@@ -46,6 +46,7 @@ class PaymentAssistantService {
 
     // 3. Silent Allocation (if payment)
     List<Map<String, dynamic>>? allocations;
+    // Handle allocation for payments
     if (type == 'payment') {
       try {
         final allocObjects = await _allocatePayment(userDoc, party, amount);
@@ -59,8 +60,6 @@ class PaymentAssistantService {
             )
             .toList();
       } catch (e) {
-        // If allocation fails (e.g. no invoices), we might still want to record as unallocated
-        // but for now let's just return empty allocations or handle error
         allocations = [];
       }
     }

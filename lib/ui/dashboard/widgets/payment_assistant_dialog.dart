@@ -529,19 +529,19 @@ class _PaymentAssistantDialogState extends ConsumerState<PaymentAssistantDialog>
     String message = "";
     if (shouldCreate) {
       message =
-          "New Party '$partyName' detected. Creating record and adding ${fmt.format(amount)} ${type == 'payment' ? 'Payment' : (type == 'sale' ? 'Sale' : 'Purchase')}. Save?";
+          "New Party '$partyName' detected. Creating record and adding a ${fmt.format(amount)} ${type == 'payment' ? 'Payment' : (type == 'sale' ? 'Sale' : 'Purchase')}. Save?";
     } else {
       String action = type == 'payment'
-          ? 'Receipt'
+          ? 'Payment'
           : (type == 'sale' ? 'Sale' : 'Purchase');
       String extra =
           (type == 'payment' &&
               _result!['allocations'] != null &&
               (_result!['allocations'] as List).isNotEmpty)
-          ? " and paying off Invoice #${(_result!['allocations'] as List).first['invoiceNumber']}"
+          ? " and allocating to Invoice #${(_result!['allocations'] as List).first['invoiceNumber']}"
           : "";
       message =
-          "Found '$partyName'. Recording ${fmt.format(amount)} $action$extra. Save?";
+          "Found '$partyName'. Recording a ${fmt.format(amount)} $action$extra. Save?";
     }
 
     return Column(
@@ -549,7 +549,7 @@ class _PaymentAssistantDialogState extends ConsumerState<PaymentAssistantDialog>
         _aiBubble(message),
         const SizedBox(height: 16),
         Row(
-          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+          mainAxisAlignment: MainAxisAlignment.center,
           children: [
             TextButton(
               onPressed: () => setState(() {
@@ -558,19 +558,27 @@ class _PaymentAssistantDialogState extends ConsumerState<PaymentAssistantDialog>
               }),
               child: const Text('Cancel/Edit'),
             ),
-            ElevatedButton(
-              onPressed: _confirmAndSave,
-              style: ElevatedButton.styleFrom(
-                backgroundColor: const Color(0xFF6366F1),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(16),
+            const SizedBox(width: 8),
+            Flexible(
+              child: ElevatedButton(
+                onPressed: _confirmAndSave,
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: const Color(0xFF6366F1),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 12,
+                  ),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(16),
+                  ),
                 ),
-              ),
-              child: const Text(
-                'Confirm & Save',
-                style: TextStyle(
-                  color: Colors.white,
-                  fontWeight: FontWeight.bold,
+                child: const Text(
+                  'Confirm & Save',
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontWeight: FontWeight.bold,
+                  ),
                 ),
               ),
             ),
