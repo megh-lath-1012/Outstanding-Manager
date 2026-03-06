@@ -39,7 +39,7 @@ class CollectionsAgentService {
     }
 
     try {
-      final result = await FirebaseFunctions.instance
+      final result = await FirebaseFunctions.instanceFor(region: 'asia-south1')
           .httpsCallable('generateOverdueReminder')
           .call({
             'customerName': invoice.partyName,
