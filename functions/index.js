@@ -88,7 +88,7 @@ exports.processPaymentAssistant = onCall({ secrets: [geminiApiKey] }, async (req
 
     const genAI = new GoogleGenerativeAI(apiKey);
     const model = genAI.getGenerativeModel({
-        model: "gemini-1.5-flash-latest",
+        model: "gemini-2.5-flash",
         generationConfig: { responseMimeType: "application/json" },
     });
 
@@ -142,7 +142,7 @@ exports.rapidFinancialEntry = onCall({ secrets: [geminiApiKey] }, async (request
     const apiKey = geminiApiKey.value();
     const genAI = new GoogleGenerativeAI(apiKey);
     const model = genAI.getGenerativeModel({
-        model: "gemini-1.5-flash-latest",
+        model: "gemini-2.5-flash",
         generationConfig: { responseMimeType: "application/json" },
     });
 
@@ -193,7 +193,7 @@ exports.processTransactionAssistant = onCall({ secrets: [geminiApiKey] }, async 
     const apiKey = geminiApiKey.value();
     const genAI = new GoogleGenerativeAI(apiKey);
     const model = genAI.getGenerativeModel({
-        model: "gemini-1.5-flash-latest",
+        model: "gemini-2.5-flash",
         generationConfig: { responseMimeType: "application/json" },
     });
 
