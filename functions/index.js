@@ -124,3 +124,89 @@ Text: "${prompt}"
         throw new HttpsError("internal", "Error calling Gemini API.");
     }
 });
+
+exports.analyzeCashflow = onCall({ secrets: [geminiApiKey] }, async (request) => {
+    if (!request.auth) {
+        throw new HttpsError("unauthenticated", "The function must be called while authenticated.");
+    }
+
+    const { getFirestore } = require("firebase-admin/firestore");
+    const db = getFirestore();
+    const userId = request.auth.uid;
+
+    try {
+        const invoicesSnapshot = await db.collection("users").doc(userId).collection("invoices").get();
+        const invoices = invoicesSnapshot.docs.map(doc => doc.data());
+
+        const today = new Date();
+        const next30Days = new Date();
+        next30Days.setDate(today.getDate() + 30);
+
+        let totalUpcomingReceivables = 0;
+        let totalUpcomingPayables = 0;
+        const dailyProjections = {};
+
+        // Pattern detection: High Risk
+        const partyStatusHistory = {};
+
+        invoices.forEach(inv => {
+            const dueDate = inv.dueDate ? inv.dueDate.toDate() : null;
+            const amount = inv.outstandingAmount || 0;
+            const type = inv.invoiceType;
+
+            if (dueDate && dueDate >= today && dueDate <= next30Days) {
+                const dateKey = dueDate.toISOString().split("T")[0];
+                if (!dailyProjections[dateKey]) {
+                    dailyProjections[dateKey] = { receivables: 0, payables: 0 };
+                }
+
+                if (type === "sales") {
+                    totalUpcomingReceivables += amount;
+                    dailyProjections[dateKey].receivables += amount;
+                } else {
+                    totalUpcomingPayables += amount;
+                    dailyProjections[dateKey].payables += amount;
+                }
+            }
+
+            const partyId = inv.partyId;
+            if (partyId) {
+                if (!partyStatusHistory[partyId]) {
+                    partyStatusHistory[partyId] = { name: inv.partyName, total: 0, partial: 0 };
+                }
+                partyStatusHistory[partyId].total++;
+                if (inv.paymentStatus === "partial") {
+                    partyStatusHistory[partyId].partial++;
+                }
+            }
+        });
+
+        const highRiskParties = Object.keys(partyStatusHistory)
+            .filter(pid => {
+                const stats = partyStatusHistory[pid];
+                return stats.total >= 3 && (stats.partial / stats.total) >= 0.5;
+            })
+            .map(pid => ({
+                partyId: pid,
+                partyName: partyStatusHistory[pid].name,
+                riskLevel: "High Risk",
+                reason: "Consistent partial payment history",
+            }));
+
+        const coveragePercent = totalUpcomingPayables > 0
+            ? Math.round((totalUpcomingReceivables / totalUpcomingPayables) * 100)
+            : 100;
+
+        return {
+            totalUpcomingReceivables,
+            totalUpcomingPayables,
+            coveragePercent,
+            dailyProjections,
+            highRiskParties,
+            summaryMessage: `You are expected to receive ₹${totalUpcomingReceivables.toLocaleString("en-IN")} by the end of the month, which covers ${coveragePercent}% of your upcoming payables (₹${totalUpcomingPayables.toLocaleString("en-IN")}).`
+        };
+    } catch (error) {
+        console.error("Cashflow Analysis Error:", error);
+        throw new HttpsError("internal", "Error analyzing cashflow data.");
+    }
+});
