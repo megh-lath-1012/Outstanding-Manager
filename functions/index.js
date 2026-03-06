@@ -2,6 +2,10 @@ const { onCall, HttpsError } = require("firebase-functions/v2/https");
 const { GoogleGenerativeAI } = require("@google/generative-ai");
 const { defineSecret } = require("firebase-functions/params");
 const { setGlobalOptions } = require("firebase-functions/v2");
+const { initializeApp } = require("firebase-admin/app");
+
+// Initialize Firebase Admin
+initializeApp();
 
 // Set global options to use Mumbai region
 setGlobalOptions({ region: "asia-south1" });
