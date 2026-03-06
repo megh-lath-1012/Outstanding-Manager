@@ -17,7 +17,9 @@ void main() async {
 
     // Initialize App Check for development
     await FirebaseAppCheck.instance.activate(
+      // ignore: deprecated_member_use
       androidProvider: AndroidProvider.debug,
+      // ignore: deprecated_member_use
       appleProvider: AppleProvider.debug,
     );
   } catch (e) {

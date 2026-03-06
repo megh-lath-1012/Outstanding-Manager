@@ -8,6 +8,7 @@ import '../../models/invoice_model.dart';
 import '../../models/payment_model.dart';
 import '../../services/cashflow_service.dart';
 import 'widgets/cashflow_summary_widget.dart';
+import 'widgets/payment_assistant_dialog.dart';
 
 class DashboardScreen extends ConsumerWidget {
   const DashboardScreen({super.key});
@@ -84,6 +85,24 @@ class DashboardScreen extends ConsumerWidget {
           ),
         ),
       ),
+      floatingActionButton: FloatingActionButton.extended(
+        onPressed: () => _showAssistant(context),
+        label: const Text('AI Assistant'),
+        icon: const Icon(Icons.auto_awesome),
+        backgroundColor: Colors.blue.shade700,
+        foregroundColor: Colors.white,
+      ),
+    );
+  }
+
+  void _showAssistant(BuildContext context) {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (context) => const PaymentAssistantDialog(),
     );
   }
 
