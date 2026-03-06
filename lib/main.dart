@@ -5,7 +5,6 @@ import 'firebase_options.dart';
 import 'core/theme/app_theme.dart';
 import 'core/router/app_router.dart';
 import 'ui/profile/appearance_screen.dart';
-import 'services/remote_config_service.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -14,10 +13,8 @@ void main() async {
     await Firebase.initializeApp(
       options: DefaultFirebaseOptions.currentPlatform,
     );
-    // Initialize Remote Config
-    await RemoteConfigService().initialize();
   } catch (e) {
-    debugPrint("Firebase/Remote Config initialization failed: $e");
+    debugPrint("Firebase initialization failed: $e");
   }
 
   runApp(const ProviderScope(child: OutstandingApp()));

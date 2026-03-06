@@ -1,29 +1,20 @@
+import 'package:cloud_functions/cloud_functions.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:google_generative_ai/google_generative_ai.dart';
 import '../models/invoice_model.dart';
-import 'remote_config_service.dart';
 
 final collectionsAgentServiceProvider = Provider<CollectionsAgentService>((
   ref,
 ) {
-  return CollectionsAgentService(ref);
+  return CollectionsAgentService();
 });
 
 class CollectionsAgentService {
-  final Ref _ref;
-
-  CollectionsAgentService(this._ref);
+  CollectionsAgentService();
 
   Future<String> generateReminder(
     Invoice invoice,
     double totalPartyBalance,
   ) async {
-    final apiKey = _ref.read(remoteConfigServiceProvider).geminiApiKey;
-
-    if (apiKey.isEmpty) {
-      throw Exception('Gemini API Key is not configured.');
-    }
-
     if (invoice.dueDate == null) {
       throw Exception('Invoice has no due date.');
     }
@@ -34,8 +25,6 @@ class CollectionsAgentService {
     if (daysLate <= 0) {
       throw Exception('Invoice is not overdue yet.');
     }
-
-    final model = GenerativeModel(model: 'gemini-1.5-pro', apiKey: apiKey);
 
     String toneInstruction;
     if (daysLate <= 7) {
@@ -49,35 +38,26 @@ class CollectionsAgentService {
           "Tone: Firm but professional. Clearly state the total outstanding balance and the specific invoice number. Request immediate payment.";
     }
 
-    final prompt =
-        '''
-You are "Outstanding Management App", an automated collections agent for a small business. 
-Generate a professional WhatsApp/Email reminder message for a customer to pay their overdue invoice.
+    try {
+      final result = await FirebaseFunctions.instance
+          .httpsCallable('generateOverdueReminder')
+          .call({
+            'customerName': invoice.partyName,
+            'invoiceNumber': invoice.invoiceNumber,
+            'invoiceAmount': invoice.totalAmount,
+            'outstandingAmount': invoice.outstandingAmount,
+            'totalPartyBalance': totalPartyBalance,
+            'daysLate': daysLate,
+            'toneInstruction': toneInstruction,
+          });
 
-Context:
-Customer Name: ${invoice.partyName}
-Invoice Number: ${invoice.invoiceNumber}
-Invoice Amount: \u20b9${invoice.totalAmount}
-Outstanding Amount for this invoice: \u20b9${invoice.outstandingAmount}
-Total Outstanding Balance for this customer: \u20b9$totalPartyBalance
-Days Overdue: $daysLate
-$toneInstruction
-
-Instructions:
-1. Make it sound human and professional.
-2. If the tone instruction mentions including the total balance or invoice number, make sure they are included naturally.
-3. Keep it brief and suitable for a WhatsApp message or short email.
-4. Do NOT include placeholders like [Your Name] or [Company Name]. Just write the message body itself.
-5. Provide ONLY the final message string, no extra conversational text or formatting outside the message.
-''';
-
-    final response = await model.generateContent([Content.text(prompt)]);
-    final responseText = response.text;
-
-    if (responseText == null || responseText.isEmpty) {
-      throw Exception('Failed to generate reminder message.');
+      final message = result.data['message'] as String?;
+      if (message == null || message.isEmpty) {
+        throw Exception('Failed to generate reminder message.');
+      }
+      return message;
+    } catch (e) {
+      throw Exception('Error calling Cloud Function: $e');
     }
-
-    return responseText.trim();
   }
 }

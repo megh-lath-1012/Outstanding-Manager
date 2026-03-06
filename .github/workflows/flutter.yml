@@ -28,4 +28,4 @@ jobs:
         run: flutter analyze
         
       - name: Run tests
-        run: flutter test --dart-define=GEMINI_API_KEY=${{ secrets.GEMINI_API_KEY }}
+        run: flutter test
