@@ -80,12 +80,9 @@ class PaymentAssistantService {
     required String type,
   }) async {
     try {
-      final result = await FirebaseFunctions.instanceFor(
-        region: 'asia-south1',
-      ).httpsCallable('processTransactionAssistant').call({
-        'prompt': prompt,
-        'type': type,
-      });
+      final result = await FirebaseFunctions.instanceFor(region: 'asia-south1')
+          .httpsCallable('processTransactionAssistant')
+          .call({'prompt': prompt, 'type': type});
 
       return Map<String, dynamic>.from(result.data);
     } catch (e) {
