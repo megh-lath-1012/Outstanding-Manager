@@ -1,0 +1,24 @@
+site_name: Outstanding Management App
+site_description: Legal Documentation and Policies for the Outstanding Management App
+build_dir: site
+
+theme:
+  name: material
+  palette:
+    primary: indigo
+    accent: teal
+  font:
+    text: Roboto
+    code: Roboto Mono
+  features:
+    - navigation.indexes
+    - navigation.top
+    
+nav:
+  - Privacy Policy: privacy-policy.md
+  - Terms of Service: terms-of-service.md
+
+markdown_extensions:
+  - admonition
+  - pymdownx.details
+  - pymdownx.superfences
