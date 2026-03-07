@@ -49,13 +49,6 @@ class _AddSalesRecordScreenState extends ConsumerState<AddSalesRecordScreen> {
       // payment info is handled by the ledger/allocations now.
     }
   }
-
-  Party? _selectedParty;
-  String _docType = 'Invoice/Bill';
-  DateTime _invoiceDate = DateTime.now();
-  DateTime? _dueDate;
-  bool _isLoading = false;
-
   @override
   void dispose() {
     _invoiceNumberController.dispose();

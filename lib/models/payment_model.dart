@@ -64,6 +64,36 @@ class Payment {
     this.allocations,
   });
 
+  Payment copyWith({
+    String? id,
+    String? partyId,
+    String? partyName,
+    String? paymentType,
+    DateTime? paymentDate,
+    double? totalAmount,
+    String? paymentMethod,
+    String? referenceNumber,
+    String? notes,
+    DateTime? createdAt,
+    DateTime? updatedAt,
+    List<PaymentAllocation>? allocations,
+  }) {
+    return Payment(
+      id: id ?? this.id,
+      partyId: partyId ?? this.partyId,
+      partyName: partyName ?? this.partyName,
+      paymentType: paymentType ?? this.paymentType,
+      paymentDate: paymentDate ?? this.paymentDate,
+      totalAmount: totalAmount ?? this.totalAmount,
+      paymentMethod: paymentMethod ?? this.paymentMethod,
+      referenceNumber: referenceNumber ?? this.referenceNumber,
+      notes: notes ?? this.notes,
+      createdAt: createdAt ?? this.createdAt,
+      updatedAt: updatedAt ?? this.updatedAt,
+      allocations: allocations ?? this.allocations,
+    );
+  }
+
   factory Payment.fromFirestore(DocumentSnapshot doc) {
     final data = doc.data() as Map<String, dynamic>;
     return Payment(
