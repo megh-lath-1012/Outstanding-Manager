@@ -161,29 +161,43 @@ class _EditPaymentScreenState extends ConsumerState<EditPaymentScreen> {
                     ),
                     const SizedBox(height: 16),
 
-                    DropdownButtonFormField<String>(
-                      value: _paymentMethod,
-                      decoration: const InputDecoration(
-                        labelText: 'Payment Method',
-                        prefixIcon: Icon(
-                          Icons.account_balance_wallet,
-                          size: 18,
-                        ),
-                      ),
-                      items: const [
-                        DropdownMenuItem(value: 'cash', child: Text('Cash')),
-                        DropdownMenuItem(
-                          value: 'bank_transfer',
-                          child: Text('Bank Transfer'),
-                        ),
-                        DropdownMenuItem(value: 'upi', child: Text('UPI')),
-                        DropdownMenuItem(
-                          value: 'cheque',
-                          child: Text('Cheque'),
-                        ),
-                      ],
-                      onChanged: (val) {
-                        if (val != null) setState(() => _paymentMethod = val);
+                    Builder(
+                      builder: (context) {
+                        final methods = [
+                          'cash',
+                          'bank_transfer',
+                          'upi',
+                          'cheque',
+                          'card',
+                          'other',
+                        ];
+                        if (!methods.contains(_paymentMethod)) {
+                          methods.add(_paymentMethod);
+                        }
+                        return DropdownButtonFormField<String>(
+                          initialValue: _paymentMethod,
+                          decoration: const InputDecoration(
+                            labelText: 'Payment Method',
+                            prefixIcon: Icon(
+                              Icons.account_balance_wallet,
+                              size: 18,
+                            ),
+                          ),
+                          items: methods
+                              .map(
+                                (m) => DropdownMenuItem(
+                                  value: m,
+                                  child: Text(
+                                    m.replaceAll('_', ' ').toUpperCase(),
+                                  ),
+                                ),
+                              )
+                              .toList(),
+                          onChanged: (val) {
+                            if (val != null)
+                              setState(() => _paymentMethod = val);
+                          },
+                        );
                       },
                     ),
                     const SizedBox(height: 16),
