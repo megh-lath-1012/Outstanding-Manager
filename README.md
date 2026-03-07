@@ -1,86 +1,69 @@
-# Outstanding Management App 📊💰
+<div align="center">
+  <h1>Outstanding Management App 📊💰</h1>
+  <p>A premium, cross-platform Flutter application designed to help businesses track and manage outstanding sales and purchase records with ease, powered by Firebase and intelligent AI features.</p>
 
-A premium, cross-platform Flutter application designed to help businesses track and manage outstanding sales and purchase records with ease. Featuring a modern UI, Firebase integration, and professional reporting capabilities.
+  [![Flutter CI](https://github.com/megh-lath-1012/Outstanding-Manager/actions/workflows/flutter.yml/badge.svg)](https://github.com/megh-lath-1012/Outstanding-Manager/actions/workflows/flutter.yml)
+  [![Flutter Test](https://github.com/megh-lath-1012/Outstanding-Manager/actions/workflows/test.yml/badge.svg)](https://github.com/megh-lath-1012/Outstanding-Manager/actions/workflows/test.yml)
+</div>
 
-## ✨ Features
+---
 
-- **📊 Dashboard Overview**: Real-time summary of total sales and purchase outstandings.
-- **📁 Record Management**:
-    - **Sales Outstanding**: Track invoices, party details, and pending amounts.
-    - **Purchase Outstanding**: Manage vendor bills and payables.
-- **💳 Payment Tracking**:
-    - Record full or partial payments for any invoice.
-    - Automatic history logging for all transactions.
-    - **Intelligent Restoration**: Deleting a payment record automatically restores the invoice balance.
-- **📨 Professional Export**:
-    - **PDF Export**: Generate clean, landscape-oriented reports with branding and total summaries.
-    - **Excel Export**: Export data to spreadsheets for further analysis.
-- **🔍 Advanced Search & Sorting**:
-    - Real-time search by party name or invoice number.
-    - Sort by Date, Amount, or Party Name.
-- **👤 Profile & Settings**: Manage business details and app preferences.
-- **🔒 Secure & Sync**: Powered by Firebase for real-time data sync and secure authentication.
+## ✨ Key Features
 
-## 🔄 Application Flow
-
-Understanding how the application works is key to effective management:
-
-1.  **Dashboard**: Start here for a high-level overview of total receivables (from customers) and payables (to suppliers).
-2.  **Parties**: Add and manage Customers (who buy from you) and Suppliers (you buy from).
-3.  **Invoices**:
-    *   Create **Sales Invoices** for customers.
-    *   Create **Purchase Invoices** for suppliers.
-    *   Invoices track line items, discounts, and taxes.
-4.  **Payments**:
-    *   Record **Receipts** when a customer pays you.
-    *   Record **Payments** when you pay a supplier.
-    *   A single payment can be allocated across multiple invoices.
-
-## ⚙️ Core Logic
-
-The application features an automated balance management system:
-
-*   **Real-time Updates**: When a payment is recorded and allocated to an invoice, the invoice's `paidAmount` and `outstandingAmount` are recalculated automatically.
-*   **Balance Restoration**: If a payment record is deleted, the system automatically restores the corresponding invoice balances, ensuring your records always stay accurate.
-*   **Status Management**: Invoices automatically transition between `Unpaid`, `Partial`, and `Paid` statuses based on the total allocated payments.
+- **💡 Pulse AI Assistant**: Built-in generative AI agent powered by Google Gemini that lets you record transactions lightning fast using natural language (e.g., *"Received 50k from Vasant"*).
+- **📊 Smart Dashboard**: Real-time summary of total sales and purchase outstandings, including monthly coverage forecasting and auto-allocation calculations.
+- **📁 Automated Ledger**: 
+  - Manage Sales Invoices, Purchase Bills, Customers, and Suppliers easily.
+  - Deleting a payment record automatically restores the invoice balance across the board.
+  - "Silent Allocation" allows rapid entry payments to intelligently find their corresponding oldest unpaid invoices automatically.
+- **📨 Professional Export**: Generate clean, branded PDF reports and Excel spreadsheets with a single tap.
+- **🔒 Bank-Grade Security**: 
+  - Fully powered by Firebase Authentication and Firestore.
+  - Production-grade Security Rules isolate user data absolutely. All keys are dynamically injected via `flutter_dotenv` keeping the open-source repository pristine.
 
 ## 🛠 Tech Stack
 
-- **Framework**: [Flutter](https://flutter.dev/) (3.11+)
+- **Frontend**: [Flutter](https://flutter.dev/) (Cross-Platform) & Material 3 / Glassmorphism UI
 - **State Management**: [Riverpod](https://riverpod.dev/)
-- **Database & Auth**: [Firebase](https://firebase.google.com/) (Firestore, Auth)
-- **Reporting**: `pdf` and `excel` packages
-- **CI/CD**: GitHub Actions (Automated Analysis & Testing)
+- **Backend & DB**: [Firebase](https://firebase.google.com/) (Firestore, Auth, Storage)
+- **Cloud Functions**: Node.js (Aggressive text parsing, AI aggregation)
+- **Generative AI**: Google Gemini 1.5 Flash API
+- **Docs via GitHub Pages**: MkDocs + Material Theme
 
 ## 🚀 Getting Started
 
 ### Prerequisites
 - Flutter SDK installed
-- A Firebase project setup
+- A Firebase project setup (with Firestore and Auth enabled)
 
-### Installation
+### Local Installation
 1.  **Clone the repository**:
     ```bash
-    git clone https://github.com/your-username/outstanding-management-app.git
-    cd outstanding_management_app
+    git clone https://github.com/megh-lath-1012/Outstanding-Manager.git
+    cd Outstanding-Manager
     ```
-2.  **Install dependencies**:
+2.  **Configure Environment Variables**:
+    Create a local `.env` file in the root directory to house your API keys (this keeps them out of version control!):
+    ```env
+    FIREBASE_ANDROID_API_KEY=your_key_here
+    FIREBASE_IOS_API_KEY=your_key_here
+    FIREBASE_WEB_API_KEY=your_key_here
+    ```
+3.  **Install dependencies**:
     ```bash
     flutter pub get
     ```
-3.  **Configure Firebase**:
-    - Add your `google-services.json` (Android) and `GoogleService-Info.plist` (iOS).
-    - Run `flutterfire configure` if using FlutterFire CLI.
 4.  **Run the app**:
     ```bash
     flutter run
     ```
 
-## 📸 Screenshots
-*(Add your screenshots here after uploading to GitHub)*
+## 📜 Legal & Documentation
 
-## 📄 License
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+All user terms, privacy policies, and security specifications can be found on our hosted documentation site:
+
+- [Privacy Policy](https://megh-lath-1012.github.io/Outstanding-Manager/privacy-policy.html)
+- [Terms & Conditions](https://megh-lath-1012.github.io/Outstanding-Manager/terms-of-service.html)
 
 ---
-Built with ❤️ using Flutter and Firebase.
+*Built with ❤️ utilizing Flutter and Firebase.*

@@ -30,11 +30,30 @@ jobs:
         run: |
           echo "${{ secrets.KEYSTORE_BASE64 }}" | base64 --decode > android/app/upload-keystore.jks
 
-      - name: Build App Bundle
-        run: flutter build appbundle --release
+      - name: Create Production .env file
+        run: |
+          echo "FIREBASE_ANDROID_API_KEY=${{ secrets.ANDROID_KEY }}" > .env
+          echo "FIREBASE_IOS_API_KEY=${{ secrets.IOS_KEY }}" >> .env
+          echo "FIREBASE_WEB_API_KEY=${{ secrets.WEB_KEY }}" >> .env
 
-      - name: Upload Artifact
+      - name: Decode Firebase Configuration Files
+        run: |
+          echo "${{ secrets.GOOGLE_SERVICES_JSON_BASE64 }}" | base64 --decode > android/app/google-services.json
+          echo "${{ secrets.GOOGLE_SERVICE_INFO_PLIST_BASE64 }}" | base64 --decode > ios/Runner/GoogleService-Info.plist
+
+      - name: Build App Bundle & APK
+        run: |
+          flutter build appbundle --release
+          flutter build apk --release
+
+      - name: Upload AAB Artifact
         uses: actions/upload-artifact@v4
         with:
           name: app-release-bundle
           path: build/app/outputs/bundle/release/app-release.aab
+
+      - name: Upload APK Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: app-release-apk
+          path: build/app/outputs/flutter-apk/app-release.apk

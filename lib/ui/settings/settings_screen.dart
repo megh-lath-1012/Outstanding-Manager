@@ -1,12 +1,22 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../../providers/auth_provider.dart';
 import 'package:go_router/go_router.dart';
-import '../profile/edit_profile_screen.dart';
+import 'package:url_launcher/url_launcher.dart';
+import '../../providers/auth_provider.dart';
 import '../profile/appearance_screen.dart';
+import '../profile/edit_profile_screen.dart';
 
 class SettingsScreen extends ConsumerWidget {
   const SettingsScreen({super.key});
+
+  Future<void> _launchURL(String urlString) async {
+    final uri = Uri.parse(urlString);
+    try {
+      await launchUrl(uri, mode: LaunchMode.externalApplication);
+    } catch (e) {
+      debugPrint("Could not launch $urlString");
+    }
+  }
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -117,20 +127,16 @@ class SettingsScreen extends ConsumerWidget {
             context,
             icon: Icons.privacy_tip_outlined,
             title: 'Privacy Policy',
-            onTap: () => _showInfoDialog(
-              context,
-              'Privacy Policy',
-              'Outstanding Manager is committed to protecting your privacy. We collect your email and company name to sync your records across devices. Your data is stored securely in Firebase and is never shared with third parties. You have full control over your data and can delete it at any time.\n\nFor the full policy, visit our website or contact support.',
+            onTap: () => _launchURL(
+              'https://megh-lath-1012.github.io/Outstanding-Manager/privacy-policy.html',
             ),
           ),
           _settingsTile(
             context,
             icon: Icons.description_outlined,
             title: 'Terms & Conditions',
-            onTap: () => _showInfoDialog(
-              context,
-              'Terms & Conditions',
-              'By using Outstanding Manager, you agree to manage your business records responsibly. The app is provided "as is" and we are not liable for any data entry errors or financial decisions made based on the app\'s contents. Ensure you keep your credentials secure.\n\nContinued use of the app constitutes acceptance of these terms.',
+            onTap: () => _launchURL(
+              'https://megh-lath-1012.github.io/Outstanding-Manager/terms-of-service.html',
             ),
           ),
 
@@ -202,22 +208,6 @@ class SettingsScreen extends ConsumerWidget {
             : null,
         trailing: const Icon(Icons.chevron_right, size: 20),
         onTap: onTap,
-      ),
-    );
-  }
-
-  void _showInfoDialog(BuildContext context, String title, String content) {
-    showDialog(
-      context: context,
-      builder: (ctx) => AlertDialog(
-        title: Text(title),
-        content: Text(content, style: const TextStyle(height: 1.5)),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(ctx),
-            child: const Text('Close'),
-          ),
-        ],
       ),
     );
   }
