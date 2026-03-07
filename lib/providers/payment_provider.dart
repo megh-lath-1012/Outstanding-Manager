@@ -64,20 +64,19 @@ class PaymentRepository {
     if (userDoc == null) throw Exception('Not authenticated');
 
     // Validation
-    if (allocations.isEmpty) {
-      throw Exception('Please select at least one invoice to allocate.');
-    }
-    for (var alloc in allocations) {
-      if (alloc.allocatedAmount <= 0) {
-        throw Exception('All allocated amounts must be greater than 0.');
+    if (allocations.isNotEmpty) {
+      for (var alloc in allocations) {
+        if (alloc.allocatedAmount <= 0) {
+          throw Exception('All allocated amounts must be greater than 0.');
+        }
       }
-    }
-    double totalAllocated = allocations.fold(
-      0.0,
-      (s, a) => s + a.allocatedAmount,
-    );
-    if ((totalAllocated - payment.totalAmount).abs() > 0.01) {
-      throw Exception('Total allocated must equal total payment amount.');
+      double totalAllocated = allocations.fold(
+        0.0,
+        (s, a) => s + a.allocatedAmount,
+      );
+      if ((totalAllocated - payment.totalAmount).abs() > 0.01) {
+        throw Exception('Total allocated must equal total payment amount.');
+      }
     }
 
     // Save payment doc
@@ -103,6 +102,32 @@ class PaymentRepository {
     }
 
     return docRef.id;
+  }
+
+  /// Update an existing payment's basic non-financial details
+  Future<void> updatePaymentBasic(
+    String paymentId,
+    Payment updatedPayment,
+  ) async {
+    final userDoc = _userDoc;
+    if (userDoc == null) throw Exception('Not authenticated');
+
+    await _ref.read(firebaseFirestoreProvider).runTransaction((
+      transaction,
+    ) async {
+      final docRef = userDoc.collection('payments').doc(paymentId);
+      final snapshot = await transaction.get(docRef);
+      if (!snapshot.exists) throw Exception("Payment does not exist!");
+
+      // Only update non-amount, non-allocation details to prevent accounting errors
+      transaction.update(docRef, {
+        'paymentDate': Timestamp.fromDate(updatedPayment.paymentDate),
+        'paymentMethod': updatedPayment.paymentMethod,
+        'referenceNumber': updatedPayment.referenceNumber,
+        'notes': updatedPayment.notes,
+        'updatedAt': FieldValue.serverTimestamp(),
+      });
+    });
   }
 
   Future<void> deletePayment(String paymentId) async {
@@ -132,5 +157,46 @@ class PaymentRepository {
     }
     batch.delete(userDoc.collection('payments').doc(paymentId));
     await batch.commit();
+  }
+
+  /// Fetch all payments allocated against a specific invoice
+  Future<List<Map<String, dynamic>>> getPaymentsForInvoice(
+    String invoiceId,
+    String partyId,
+  ) async {
+    final userDoc = _userDoc;
+    if (userDoc == null) throw Exception('Not authenticated');
+
+    // 1. Fetch all payments for this party to avoid collection group index requirement
+    final paymentsSnap = await userDoc
+        .collection('payments')
+        .where('partyId', isEqualTo: partyId)
+        .get();
+
+    List<Map<String, dynamic>> results = [];
+
+    // 2. For each payment, check its allocations subcollection
+    for (var doc in paymentsSnap.docs) {
+      final allocsSnap = await doc.reference
+          .collection('allocations')
+          .where('invoiceId', isEqualTo: invoiceId)
+          .get();
+
+      for (var allocDoc in allocsSnap.docs) {
+        results.add({
+          'payment': Payment.fromFirestore(doc),
+          'allocation': PaymentAllocation.fromMap(allocDoc.data(), allocDoc.id),
+        });
+      }
+    }
+
+    // Sort by most recent payment first
+    results.sort((a, b) {
+      final p1 = a['payment'] as Payment;
+      final p2 = b['payment'] as Payment;
+      return p2.paymentDate.compareTo(p1.paymentDate);
+    });
+
+    return results;
   }
 }

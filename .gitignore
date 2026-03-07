@@ -52,3 +52,12 @@ node_modules/
 .firebase/
 .firebaserc
 functions/node_modules/
+
+# Sensitive Configuration Files
+android/app/google-services.json
+ios/Runner/GoogleService-Info.plist
+
+# Keystore and Signing
+android/key.properties
+*.jks
+*.keystore

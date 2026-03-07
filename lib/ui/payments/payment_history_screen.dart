@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 import '../../providers/payment_provider.dart';
 import '../../models/payment_model.dart';
+import 'edit_payment_screen.dart';
 
 class PaymentHistoryScreen extends ConsumerStatefulWidget {
   final String paymentType; // 'receipt' or 'payment'
@@ -105,90 +106,99 @@ class _PaymentHistoryScreenState extends ConsumerState<PaymentHistoryScreen> {
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(12),
                       ),
-                      child: ListTile(
-                        contentPadding: const EdgeInsets.symmetric(
-                          horizontal: 16,
-                          vertical: 8,
-                        ),
-                        title: Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            Expanded(
-                              child: Text(
-                                p.partyName,
-                                style: const TextStyle(
-                                  fontWeight: FontWeight.bold,
+                      child: InkWell(
+                        onTap: () {
+                          Navigator.of(context).push(
+                            MaterialPageRoute(
+                              builder: (_) => EditPaymentScreen(payment: p),
+                            ),
+                          );
+                        },
+                        child: ListTile(
+                          contentPadding: const EdgeInsets.symmetric(
+                            horizontal: 16,
+                            vertical: 8,
+                          ),
+                          title: Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Expanded(
+                                child: Text(
+                                  p.partyName,
+                                  style: const TextStyle(
+                                    fontWeight: FontWeight.bold,
+                                  ),
                                 ),
                               ),
-                            ),
-                            Text(
-                              currencyFormat.format(p.totalAmount),
-                              style: TextStyle(
-                                fontWeight: FontWeight.bold,
-                                color: widget.paymentType == 'receipt'
-                                    ? Colors.green
-                                    : Colors.red,
-                              ),
-                            ),
-                          ],
-                        ),
-                        subtitle: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            const SizedBox(height: 4),
-                            Row(
-                              children: [
-                                Text(
-                                  DateFormat(
-                                    'dd MMM yyyy',
-                                  ).format(p.paymentDate),
-                                  style: TextStyle(
-                                    fontSize: 12,
-                                    color: Colors.grey.shade600,
-                                  ),
-                                ),
-                                const SizedBox(width: 12),
-                                Container(
-                                  padding: const EdgeInsets.symmetric(
-                                    horizontal: 6,
-                                    vertical: 1,
-                                  ),
-                                  decoration: BoxDecoration(
-                                    color: Colors.blue.withAlpha(20),
-                                    borderRadius: BorderRadius.circular(4),
-                                  ),
-                                  child: Text(
-                                    p.paymentMethod.toUpperCase(),
-                                    style: const TextStyle(
-                                      fontSize: 9,
-                                      color: Colors.blue,
-                                      fontWeight: FontWeight.bold,
-                                    ),
-                                  ),
-                                ),
-                              ],
-                            ),
-                            if (p.notes != null) ...[
-                              const SizedBox(height: 4),
                               Text(
-                                p.notes!,
+                                currencyFormat.format(p.totalAmount),
                                 style: TextStyle(
-                                  fontSize: 12,
-                                  color: Colors.grey.shade500,
-                                  fontStyle: FontStyle.italic,
+                                  fontWeight: FontWeight.bold,
+                                  color: widget.paymentType == 'receipt'
+                                      ? Colors.green
+                                      : Colors.red,
                                 ),
-                                maxLines: 1,
-                                overflow: TextOverflow.ellipsis,
                               ),
                             ],
-                          ],
-                        ),
-                        trailing: IconButton(
-                          icon: const Icon(
-                            Icons.delete_outline,
-                            color: Colors.grey,
                           ),
-                          onPressed: () => _confirmDelete(p),
+                          subtitle: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              const SizedBox(height: 4),
+                              Row(
+                                children: [
+                                  Text(
+                                    DateFormat(
+                                      'dd MMM yyyy',
+                                    ).format(p.paymentDate),
+                                    style: TextStyle(
+                                      fontSize: 12,
+                                      color: Colors.grey.shade600,
+                                    ),
+                                  ),
+                                  const SizedBox(width: 12),
+                                  Container(
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: 6,
+                                      vertical: 1,
+                                    ),
+                                    decoration: BoxDecoration(
+                                      color: Colors.blue.withAlpha(20),
+                                      borderRadius: BorderRadius.circular(4),
+                                    ),
+                                    child: Text(
+                                      p.paymentMethod.toUpperCase(),
+                                      style: const TextStyle(
+                                        fontSize: 9,
+                                        color: Colors.blue,
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                              if (p.notes != null) ...[
+                                const SizedBox(height: 4),
+                                Text(
+                                  p.notes!,
+                                  style: TextStyle(
+                                    fontSize: 12,
+                                    color: Colors.grey.shade500,
+                                    fontStyle: FontStyle.italic,
+                                  ),
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                              ],
+                            ],
+                          ),
+                          trailing: IconButton(
+                            icon: const Icon(
+                              Icons.delete_outline,
+                              color: Colors.grey,
+                            ),
+                            onPressed: () => _confirmDelete(p),
+                          ),
                         ),
                       ),
                     );

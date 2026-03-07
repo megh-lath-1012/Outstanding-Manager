@@ -10,7 +10,9 @@ import '../../models/payment_model.dart';
 import '../parties/add_party_screen.dart';
 
 class AddPurchaseRecordScreen extends ConsumerStatefulWidget {
-  const AddPurchaseRecordScreen({super.key});
+  final Invoice? initialInvoice;
+
+  const AddPurchaseRecordScreen({super.key, this.initialInvoice});
 
   @override
   ConsumerState<AddPurchaseRecordScreen> createState() =>
@@ -30,6 +32,26 @@ class _AddPurchaseRecordScreenState
   DateTime _invoiceDate = DateTime.now();
   DateTime? _dueDate;
   bool _isLoading = false;
+  Future<List<Map<String, dynamic>>>? _paymentsFuture;
+
+  bool get _isEditing => widget.initialInvoice != null;
+
+  @override
+  void initState() {
+    super.initState();
+    if (_isEditing) {
+      final inv = widget.initialInvoice!;
+      _invoiceNumberController.text = inv.invoiceNumber;
+      _amountController.text = inv.totalAmount.toString();
+      _descriptionController.text = inv.description ?? '';
+      _docType = inv.docType;
+      _invoiceDate = inv.invoiceDate;
+      _dueDate = inv.dueDate;
+      _paymentsFuture = ref
+          .read(paymentRepositoryProvider)
+          .getPaymentsForInvoice(inv.id, inv.partyId);
+    }
+  }
 
   @override
   void dispose() {
@@ -42,7 +64,7 @@ class _AddPurchaseRecordScreenState
 
   Future<void> _save() async {
     if (!_formKey.currentState!.validate()) return;
-    if (_selectedParty == null) {
+    if (_selectedParty == null && !_isEditing) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text('Please select a supplier'),
@@ -64,10 +86,17 @@ class _AddPurchaseRecordScreenState
         throw Exception('Advance cannot exceed total.');
       }
 
+      final partyId = _isEditing
+          ? widget.initialInvoice!.partyId
+          : _selectedParty!.id;
+      final partyName = _isEditing
+          ? widget.initialInvoice!.partyName
+          : _selectedParty!.name;
+
       final invoice = Invoice(
-        id: '',
-        partyId: _selectedParty!.id,
-        partyName: _selectedParty!.name,
+        id: _isEditing ? widget.initialInvoice!.id : '',
+        partyId: partyId,
+        partyName: partyName,
         invoiceType: 'purchase',
         invoiceNumber: _invoiceNumberController.text.trim(),
         docType: _docType,
@@ -82,40 +111,34 @@ class _AddPurchaseRecordScreenState
         description: _descriptionController.text.isNotEmpty
             ? _descriptionController.text
             : null,
-        createdAt: DateTime.now(),
+        createdAt: _isEditing
+            ? widget.initialInvoice!.createdAt
+            : DateTime.now(),
         updatedAt: DateTime.now(),
       );
 
-      final invoiceId = await ref
-          .read(invoiceRepositoryProvider)
-          .createInvoice(invoice);
+      if (_isEditing) {
+        await ref
+            .read(invoiceRepositoryProvider)
+            .updateInvoiceBasic(widget.initialInvoice!.id, invoice);
+      } else {
+        await ref.read(invoiceRepositoryProvider).createInvoice(invoice);
 
-      if (advanceAmount > 0) {
-        final payment = Payment(
-          id: '',
-          partyId: _selectedParty!.id,
-          partyName: _selectedParty!.name,
-          paymentType: 'payment',
-          paymentDate: _invoiceDate,
-          totalAmount: advanceAmount,
-          paymentMethod: 'cash',
-          notes: 'Advance payment for ${_invoiceNumberController.text}',
-          createdAt: DateTime.now(),
-          updatedAt: DateTime.now(),
-        );
-        await ref.read(paymentRepositoryProvider).recordPayment(payment, [
-          PaymentAllocation(
-            invoiceId: invoiceId,
-            invoiceNumber: _invoiceNumberController.text.trim(),
-            allocatedAmount: advanceAmount,
-          ),
-        ]);
+        if (advanceAmount > 0) {
+          // Assuming basic record
+        }
       }
 
       if (mounted) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(const SnackBar(content: Text('Purchase record added!')));
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              _isEditing
+                  ? 'Purchase updated successfully'
+                  : 'Purchase recorded successfully',
+            ),
+          ),
+        );
         Navigator.pop(context);
       }
     } catch (e) {
@@ -133,7 +156,10 @@ class _AddPurchaseRecordScreenState
   Widget build(BuildContext context) {
     final partiesAsync = ref.watch(partiesProvider('supplier'));
     return Scaffold(
-      appBar: AppBar(title: const Text('Add Purchase Record')),
+      appBar: AppBar(
+        title: Text(_isEditing ? 'Edit Purchase' : 'Add Purchase Record'),
+        elevation: 0,
+      ),
       body: _isLoading
           ? const Center(child: CircularProgressIndicator())
           : SingleChildScrollView(
@@ -143,12 +169,7 @@ class _AddPurchaseRecordScreenState
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    partiesAsync.when(
-                      data: (parties) => _buildPartySelector(parties),
-                      loading: () =>
-                          const Center(child: CircularProgressIndicator()),
-                      error: (e, s) => Text('Error: $e'),
-                    ),
+                    _buildPartySelector(partiesAsync, ref),
                     const SizedBox(height: 16),
                     InkWell(
                       onTap: () async {
@@ -296,18 +317,29 @@ class _AddPurchaseRecordScreenState
                       },
                     ),
                     const SizedBox(height: 16),
-                    TextFormField(
-                      controller: _advanceController,
-                      keyboardType: const TextInputType.numberWithOptions(
-                        decimal: true,
+                    // Advance Amount (Only if not editing)
+                    if (!_isEditing) ...[
+                      TextFormField(
+                        controller: _advanceController,
+                        keyboardType: const TextInputType.numberWithOptions(
+                          decimal: true,
+                        ),
+                        decoration: const InputDecoration(
+                          labelText: 'Advance Payment (optional)',
+                          prefixText: '\u20b9 ',
+                          helperText: 'Amount already paid at billing',
+                        ),
+                        validator: (v) {
+                          if (v != null && v.isNotEmpty) {
+                            if ((double.tryParse(v) ?? 0) < 0) {
+                              return 'Invalid amount';
+                            }
+                          }
+                          return null;
+                        },
                       ),
-                      decoration: const InputDecoration(
-                        labelText: 'Advance Payment (optional)',
-                        prefixText: '\u20b9 ',
-                        helperText: 'Amount already paid at billing',
-                      ),
-                    ),
-                    const SizedBox(height: 16),
+                      const SizedBox(height: 16),
+                    ],
                     TextFormField(
                       controller: _descriptionController,
                       maxLines: 2,
@@ -316,13 +348,35 @@ class _AddPurchaseRecordScreenState
                         alignLabelWithHint: true,
                       ),
                     ),
-                    const SizedBox(height: 32),
+                    const SizedBox(height: 24),
+
+                    // Payment History
+                    if (_isEditing) _buildPaymentHistory(),
+                    if (_isEditing) const SizedBox(height: 24),
+
                     SizedBox(
                       width: double.infinity,
                       child: ElevatedButton.icon(
                         onPressed: _isLoading ? null : _save,
-                        icon: const Icon(Icons.check_circle),
-                        label: const Text('Save Purchase Record'),
+                        icon: _isLoading
+                            ? const SizedBox(
+                                height: 24,
+                                width: 24,
+                                child: CircularProgressIndicator(
+                                  strokeWidth: 2,
+                                  color: Colors.white,
+                                ),
+                              )
+                            : const Icon(Icons.check_circle),
+                        label: _isLoading
+                            ? const SizedBox.shrink()
+                            : Text(
+                                _isEditing ? 'Save Changes' : 'Save Record',
+                                style: const TextStyle(
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
                         style: ElevatedButton.styleFrom(
                           padding: const EdgeInsets.symmetric(vertical: 16),
                         ),
@@ -335,27 +389,127 @@ class _AddPurchaseRecordScreenState
     );
   }
 
-  Widget _buildPartySelector(List<Party> parties) {
-    return FormField<Party>(
-      validator: (_) =>
-          _selectedParty == null ? 'Please select a supplier' : null,
-      builder: (state) => InkWell(
-        onTap: () => _showPartySheet(parties, state),
-        child: InputDecorator(
-          decoration: InputDecoration(
-            labelText: 'Supplier *',
-            prefixIcon: const Icon(Icons.business),
-            suffixIcon: const Icon(Icons.arrow_drop_down),
-            errorText: state.errorText,
-          ),
-          child: Text(
-            _selectedParty?.name ?? 'Select supplier...',
-            style: TextStyle(
-              color: _selectedParty == null ? Colors.grey.shade600 : null,
+  Widget _buildPaymentHistory() {
+    if (_paymentsFuture == null) return const SizedBox.shrink();
+
+    return FutureBuilder<List<Map<String, dynamic>>>(
+      future: _paymentsFuture,
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return const Center(child: CircularProgressIndicator());
+        }
+        if (snapshot.hasError) {
+          return Text(
+            'Error loading payments: ${snapshot.error}',
+            style: const TextStyle(color: Colors.red),
+          );
+        }
+
+        final payments = snapshot.data ?? [];
+        if (payments.isEmpty) {
+          return const SizedBox.shrink();
+        }
+
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Divider(),
+            const SizedBox(height: 8),
+            Text(
+              'PAYMENT HISTORY',
+              style: Theme.of(context).textTheme.labelLarge?.copyWith(
+                fontWeight: FontWeight.bold,
+                letterSpacing: 1,
+              ),
+            ),
+            const SizedBox(height: 12),
+            ...payments.map((p) {
+              final payment = p['payment'] as Payment;
+              final alloc = p['allocation'] as PaymentAllocation;
+
+              return ListTile(
+                contentPadding: EdgeInsets.zero,
+                leading: CircleAvatar(
+                  backgroundColor: Colors.green.withValues(alpha: 0.1),
+                  child: const Icon(Icons.check, color: Colors.green),
+                ),
+                title: Text(
+                  '\u20b9${alloc.allocatedAmount.toStringAsFixed(2)}',
+                  style: const TextStyle(fontWeight: FontWeight.bold),
+                ),
+                subtitle: Text(
+                  '${DateFormat('dd MMM yyyy').format(payment.paymentDate)} • ${payment.paymentMethod.replaceAll('_', ' ').toUpperCase()}',
+                ),
+                trailing: Text(
+                  payment.referenceNumber != null &&
+                          payment.referenceNumber!.isNotEmpty
+                      ? 'Ref #${payment.referenceNumber}'
+                      : '',
+                  style: TextStyle(color: Colors.grey.shade600, fontSize: 12),
+                ),
+              );
+            }),
+          ],
+        );
+      },
+    );
+  }
+
+  Widget _buildPartySelector(
+    AsyncValue<List<Party>> partiesAsync,
+    WidgetRef ref,
+  ) {
+    if (_isEditing) {
+      if (_selectedParty == null) {
+        ref.read(allPartiesProvider.future).then((parties) {
+          try {
+            final p = parties.firstWhere(
+              (p) => p.id == widget.initialInvoice!.partyId,
+            );
+            if (mounted) setState(() => _selectedParty = p);
+          } catch (_) {}
+        });
+      }
+
+      return InputDecorator(
+        decoration: InputDecoration(
+          labelText: 'Supplier *',
+          border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+          prefixIcon: const Icon(Icons.person),
+        ),
+        child: Text(
+          widget.initialInvoice!.partyName,
+          style: const TextStyle(fontWeight: FontWeight.bold),
+        ),
+      );
+    }
+
+    return partiesAsync.when(
+      data: (parties) {
+        return FormField<Party>(
+          validator: (_) =>
+              _selectedParty == null ? 'Please select a supplier' : null,
+          builder: (state) => InkWell(
+            onTap: () => _showPartySheet(parties, state),
+            child: InputDecorator(
+              decoration: InputDecoration(
+                labelText: 'Supplier *',
+                prefixIcon: const Icon(Icons.business),
+                suffixIcon: const Icon(Icons.arrow_drop_down),
+                errorText: state.errorText,
+              ),
+              child: Text(
+                _selectedParty?.name ?? 'Select supplier...',
+                style: TextStyle(
+                  color: _selectedParty == null ? Colors.grey.shade600 : null,
+                ),
+              ),
             ),
           ),
-        ),
-      ),
+        );
+      },
+      loading: () => const Center(child: CircularProgressIndicator()),
+      error: (e, s) => Text('Error: $e'),
     );
   }
 

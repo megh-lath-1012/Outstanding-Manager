@@ -19,6 +19,70 @@ class PaymentAssistantService {
 
   DocumentReference? get _userDoc => _ref.read(userDocProvider);
 
+  /// Main entry point for the "Rapid Financial Entry Agent"
+  Future<Map<String, dynamic>> processRapidEntry(String prompt) async {
+    final userDoc = _userDoc;
+    if (userDoc == null) throw Exception('User not authenticated.');
+
+    // 1. Call the "Aggressive Parsing" Cloud Function
+    final extracted = await _callRapidEntryFunction(prompt);
+
+    final String type = extracted['type']; // 'sale', 'purchase', 'payment'
+    final String partyName = extracted['partyName'];
+    final double amount = (extracted['amount'] as num).toDouble();
+
+    // 2. Party Intelligence: Fuzzy search
+    final party = await _findPartyByName(userDoc, partyName);
+
+    if (party == null) {
+      // Return flag to create party
+      return {
+        ...extracted,
+        'shouldCreateParty': true,
+        'matchedParty': null,
+        'allocations': null,
+      };
+    }
+
+    // 3. Silent Allocation (if payment)
+    List<Map<String, dynamic>>? allocations;
+    // Handle allocation for payments
+    if (type == 'payment') {
+      try {
+        final allocObjects = await _allocatePayment(userDoc, party, amount);
+        allocations = allocObjects
+            .map(
+              (a) => {
+                'invoiceId': a.invoiceId,
+                'invoiceNumber': a.invoiceNumber,
+                'allocatedAmount': a.allocatedAmount,
+              },
+            )
+            .toList();
+      } catch (e) {
+        allocations = [];
+      }
+    }
+
+    return {
+      ...extracted,
+      'shouldCreateParty': false,
+      'matchedParty': party,
+      'allocations': allocations,
+    };
+  }
+
+  Future<Map<String, dynamic>> _callRapidEntryFunction(String prompt) async {
+    try {
+      final result = await FirebaseFunctions.instanceFor(
+        region: 'asia-south1',
+      ).httpsCallable('rapidFinancialEntry').call({'prompt': prompt});
+      return Map<String, dynamic>.from(result.data);
+    } catch (e) {
+      throw Exception('Extraction failed: $e');
+    }
+  }
+
   /// Processes natural language prompt and returns formatted JSON map for [recordPayment]
   Future<Map<String, dynamic>> processPaymentPrompt(String prompt) async {
     final userDoc = _userDoc;
@@ -74,6 +138,22 @@ class PaymentAssistantService {
     }
   }
 
+  /// Processes natural language prompt for Sales or Purchases
+  Future<Map<String, dynamic>> processTransactionPrompt({
+    required String prompt,
+    required String type,
+  }) async {
+    try {
+      final result = await FirebaseFunctions.instanceFor(region: 'asia-south1')
+          .httpsCallable('processTransactionAssistant')
+          .call({'prompt': prompt, 'type': type});
+
+      return Map<String, dynamic>.from(result.data);
+    } catch (e) {
+      throw Exception('Error calling Transaction Assistant Cloud Function: $e');
+    }
+  }
+
   Future<Party?> _findPartyByName(
     DocumentReference userDoc,
     String partyName,
@@ -82,32 +162,52 @@ class PaymentAssistantService {
 
     try {
       final doc = snapshot.docs.firstWhere(
-        (doc) => (doc.data()['name'] as String).toLowerCase().contains(
-          partyName.toLowerCase(),
-        ),
+        (doc) =>
+            (doc.data()['name'] as String).toLowerCase() ==
+                partyName.toLowerCase() ||
+            (doc.data()['name'] as String).toLowerCase().contains(
+              partyName.toLowerCase(),
+            ),
       );
       return Party.fromFirestore(doc);
     } catch (e) {
-      return null;
+      // Try startsWith as fallback
+      try {
+        final doc = snapshot.docs.firstWhere(
+          (doc) => (doc.data()['name'] as String).toLowerCase().startsWith(
+            partyName.toLowerCase().substring(0, min(3, partyName.length)),
+          ),
+        );
+        return Party.fromFirestore(doc);
+      } catch (_) {
+        return null;
+      }
     }
   }
+
+  int min(int a, int b) => a < b ? a : b;
 
   Future<List<PaymentAllocation>> _allocatePayment(
     DocumentReference userDoc,
     Party party,
     double amount,
   ) async {
-    // Fetch unpaid/partial invoices
+    // Fetch invoices for this party
     final snapshot = await userDoc
         .collection('invoices')
         .where('partyId', isEqualTo: party.id)
-        .where('paymentStatus', whereIn: ['unpaid', 'partial'])
-        .orderBy('invoiceDate', descending: false) // oldest first
         .get();
 
+    // Filter for unpaid/partial and sort oldest first in memory
     final invoices = snapshot.docs
         .map((doc) => Invoice.fromFirestore(doc))
+        .where(
+          (inv) =>
+              inv.paymentStatus == 'unpaid' || inv.paymentStatus == 'partial',
+        )
         .toList();
+
+    invoices.sort((a, b) => a.invoiceDate.compareTo(b.invoiceDate));
 
     double remainingAmount = amount;
     List<PaymentAllocation> allocations = [];
@@ -132,17 +232,9 @@ class PaymentAssistantService {
       remainingAmount -= allocateToThis;
     }
 
-    if (allocations.isEmpty) {
-      throw Exception(
-        'No outstanding invoices found for ${party.name} to allocate this payment.',
-      );
-    }
-
-    if (remainingAmount > 0.01) {
-      throw Exception(
-        'Payment amount (\$amount) exceeds total outstanding balance for ${party.name}.',
-      );
-    }
+    // We do not throw exceptions for unallocated surplus or empty allocations.
+    // The remaining amount will simply be recorded as an unallocated advance payment
+    // which accurately reflects reality according to the business rules.
 
     return allocations;
   }

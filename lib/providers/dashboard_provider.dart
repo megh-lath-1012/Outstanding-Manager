@@ -11,34 +11,65 @@ final dashboardMetricsProvider = Provider<AsyncValue<DashboardMetrics>>((ref) {
   final purchasesAsync = ref.watch(
     invoicesProvider(InvoiceQuery(invoiceType: 'purchase')),
   );
+  final receiptsAsync = ref.watch(
+    paymentsProvider(PaymentQuery(paymentType: 'receipt')),
+  );
+  final paymentsOutAsync = ref.watch(
+    paymentsProvider(PaymentQuery(paymentType: 'payment')),
+  );
 
   return salesAsync.when(
     data: (sales) {
       return purchasesAsync.when(
         data: (purchases) {
-          double totalSales = 0, salesOutstanding = 0, salesReceived = 0;
-          for (var inv in sales) {
-            totalSales += inv.totalAmount;
-            salesOutstanding += inv.outstandingAmount;
-            salesReceived += inv.paidAmount;
-          }
+          return receiptsAsync.when(
+            data: (receipts) {
+              return paymentsOutAsync.when(
+                data: (paymentsOut) {
+                  double totalSales = 0;
+                  for (var inv in sales) {
+                    totalSales += inv.totalAmount;
+                  }
 
-          double totalPurchases = 0, purchaseOutstanding = 0, purchasePaid = 0;
-          for (var inv in purchases) {
-            totalPurchases += inv.totalAmount;
-            purchaseOutstanding += inv.outstandingAmount;
-            purchasePaid += inv.paidAmount;
-          }
+                  double salesReceived = 0;
+                  for (var pay in receipts) {
+                    salesReceived += pay.totalAmount;
+                  }
 
-          return AsyncValue.data(
-            DashboardMetrics(
-              totalSales: totalSales,
-              salesOutstanding: salesOutstanding,
-              salesReceived: salesReceived,
-              totalPurchases: totalPurchases,
-              purchaseOutstanding: purchaseOutstanding,
-              purchasePaid: purchasePaid,
-            ),
+                  double totalPurchases = 0;
+                  for (var inv in purchases) {
+                    totalPurchases += inv.totalAmount;
+                  }
+
+                  double purchasePaid = 0;
+                  for (var pay in paymentsOut) {
+                    purchasePaid += pay.totalAmount;
+                  }
+
+                  double salesOutstanding = totalSales - salesReceived;
+                  double purchaseOutstanding = totalPurchases - purchasePaid;
+
+                  // Prevent negative outstanding visually if someone overpaid
+                  if (salesOutstanding < 0) salesOutstanding = 0;
+                  if (purchaseOutstanding < 0) purchaseOutstanding = 0;
+
+                  return AsyncValue.data(
+                    DashboardMetrics(
+                      totalSales: totalSales,
+                      salesOutstanding: salesOutstanding,
+                      salesReceived: salesReceived,
+                      totalPurchases: totalPurchases,
+                      purchaseOutstanding: purchaseOutstanding,
+                      purchasePaid: purchasePaid,
+                    ),
+                  );
+                },
+                loading: () => const AsyncValue.loading(),
+                error: (e, s) => AsyncValue.error(e, s),
+              );
+            },
+            loading: () => const AsyncValue.loading(),
+            error: (e, s) => AsyncValue.error(e, s),
           );
         },
         loading: () => const AsyncValue.loading(),
