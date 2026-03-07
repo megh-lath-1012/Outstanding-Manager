@@ -41,6 +41,16 @@ jobs:
           echo "${{ secrets.GOOGLE_SERVICES_JSON_BASE64 }}" | base64 --decode > android/app/google-services.json
           echo "${{ secrets.GOOGLE_SERVICE_INFO_PLIST_BASE64 }}" | base64 --decode > ios/Runner/GoogleService-Info.plist
 
+      - name: Auto-increment version
+        run: |
+          # Use GitHub run number as build number (always increases)
+          BUILD_NUMBER=${{ github.run_number }}
+          # Extract current version name (e.g., 1.0.0)
+          VERSION_NAME=$(grep 'version:' pubspec.yaml | head -1 | sed 's/version: //' | sed 's/+.*//')
+          # Update pubspec.yaml with new version+build
+          sed -i "s/version: .*/version: ${VERSION_NAME}+${BUILD_NUMBER}/" pubspec.yaml
+          echo "Building version: ${VERSION_NAME}+${BUILD_NUMBER}"
+
       - name: Build App Bundle & APK
         run: |
           flutter build appbundle --release

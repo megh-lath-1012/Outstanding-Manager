@@ -27,7 +27,7 @@
 - **State Management**: [Riverpod](https://riverpod.dev/)
 - **Backend & DB**: [Firebase](https://firebase.google.com/) (Firestore, Auth, Storage)
 - **Cloud Functions**: Node.js (Aggressive text parsing, AI aggregation)
-- **Generative AI**: Google Gemini 1.5 Flash API
+- **Generative AI**: Google Gemini 2.5 Flash API
 - **Docs via GitHub Pages**: MkDocs + Material Theme
 
 ## 🚀 Getting Started
