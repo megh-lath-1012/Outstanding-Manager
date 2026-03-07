@@ -4,6 +4,8 @@ import 'package:firebase_core/firebase_core.dart' show FirebaseOptions;
 import 'package:flutter/foundation.dart'
     show defaultTargetPlatform, kIsWeb, TargetPlatform;
 
+import 'package:flutter_dotenv/flutter_dotenv.dart';
+
 /// Default [FirebaseOptions] for use with your Firebase apps.
 ///
 /// Example:
@@ -46,8 +48,8 @@ class DefaultFirebaseOptions {
     }
   }
 
-  static const FirebaseOptions web = FirebaseOptions(
-    apiKey: 'AIzaSyB_BKM6BLKc2NojsO27ccvZx0uJZUSCbfs',
+  static FirebaseOptions get web => FirebaseOptions(
+    apiKey: dotenv.env['FIREBASE_WEB_API_KEY'] ?? 'MISSING_API_KEY',
     appId: '1:331195204285:web:bbaa8e513c6a1d95f42dd4',
     messagingSenderId: '331195204285',
     projectId: 'outstanding-management-app',
@@ -56,16 +58,16 @@ class DefaultFirebaseOptions {
     measurementId: 'G-WMKJZ0PRYY',
   );
 
-  static const FirebaseOptions android = FirebaseOptions(
-    apiKey: 'AIzaSyDQ2EtQKAeNBLkuNUXmVgW_N475mrWHPiM',
+  static FirebaseOptions get android => FirebaseOptions(
+    apiKey: dotenv.env['FIREBASE_ANDROID_API_KEY'] ?? 'MISSING_API_KEY',
     appId: '1:331195204285:android:1fc78f424be04584f42dd4',
     messagingSenderId: '331195204285',
     projectId: 'outstanding-management-app',
     storageBucket: 'outstanding-management-app.firebasestorage.app',
   );
 
-  static const FirebaseOptions ios = FirebaseOptions(
-    apiKey: 'AIzaSyDjNBU7SyqKPywPAG7Ki32tBdwI57Y9ID8',
+  static FirebaseOptions get ios => FirebaseOptions(
+    apiKey: dotenv.env['FIREBASE_IOS_API_KEY'] ?? 'MISSING_API_KEY',
     appId: '1:331195204285:ios:457f0ffb416055e3f42dd4',
     messagingSenderId: '331195204285',
     projectId: 'outstanding-management-app',
