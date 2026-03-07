@@ -4,8 +4,6 @@ import 'package:intl/intl.dart';
 import '../../providers/invoice_provider.dart';
 import '../../providers/payment_provider.dart';
 import '../../providers/party_provider.dart';
-import '../../providers/payment_provider.dart';
-import '../../providers/party_provider.dart';
 import '../../models/party_model.dart';
 import '../../models/invoice_model.dart';
 import '../../models/payment_model.dart';

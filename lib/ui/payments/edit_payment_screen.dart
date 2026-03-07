@@ -194,8 +194,9 @@ class _EditPaymentScreenState extends ConsumerState<EditPaymentScreen> {
                               )
                               .toList(),
                           onChanged: (val) {
-                            if (val != null)
+                            if (val != null) {
                               setState(() => _paymentMethod = val);
+                            }
                           },
                         );
                       },

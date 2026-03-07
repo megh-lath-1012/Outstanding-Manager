@@ -125,23 +125,6 @@ class _AddPurchaseRecordScreenState
         await ref.read(invoiceRepositoryProvider).createInvoice(invoice);
 
         if (advanceAmount > 0) {
-          final payment = Payment(
-            id: '',
-            partyId: partyId,
-            partyName: partyName,
-            paymentType: 'payment',
-            paymentDate: _invoiceDate,
-            totalAmount: advanceAmount,
-            paymentMethod: 'cash',
-            createdAt: DateTime.now(),
-            updatedAt: DateTime.now(),
-          );
-
-          final alloc = PaymentAllocation(
-            invoiceId: '',
-            invoiceNumber: invoice.invoiceNumber,
-            allocatedAmount: advanceAmount,
-          );
           // Assuming basic record
         }
       }

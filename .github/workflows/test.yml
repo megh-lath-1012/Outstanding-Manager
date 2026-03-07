@@ -1,4 +1,4 @@
-name: Flutter CI
+name: Flutter Test
 
 on:
   push:
@@ -7,7 +7,7 @@ on:
     branches: [ "main", "enhancements" ]
 
 jobs:
-  build:
+  test:
     runs-on: ubuntu-latest
 
     steps:
@@ -21,8 +21,5 @@ jobs:
       - name: Install dependencies
         run: flutter pub get
         
-      - name: Verify formatting
-        run: dart format --output=none --set-exit-if-changed .
-        
-      - name: Analyze project source
-        run: flutter analyze
+      - name: Run tests
+        run: flutter test

@@ -119,18 +119,6 @@ class _AddSalesRecordScreenState extends ConsumerState<AddSalesRecordScreen> {
 
         // If advance payment, create a payment record
         if (advanceAmount > 0) {
-          final payment = Payment(
-            id: '',
-            partyId: _selectedParty!.id,
-            partyName: _selectedParty!.name,
-            paymentType: 'receipt',
-            paymentDate: _invoiceDate,
-            totalAmount: advanceAmount,
-            paymentMethod: 'cash', // Default to cash for simplicity
-            createdAt: DateTime.now(),
-            updatedAt: DateTime.now(),
-          );
-
           // Simplified for MVP, real system would await invoice creation then use its ID for allocation
           // Due to time constraints, advance amount will just live on the invoice for now without ledger entry
         }
