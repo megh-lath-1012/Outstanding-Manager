@@ -47,7 +47,10 @@ class DefaultFirebaseOptions {
   }
 
   static const FirebaseOptions web = FirebaseOptions(
-    apiKey: 'AIzaSyB_BKM6BLKc2NojsO27ccvZx0uJZUSCbfs',
+    apiKey: String.fromEnvironment(
+      'FIREBASE_WEB_API_KEY',
+      defaultValue: 'MISSING_API_KEY',
+    ),
     appId: '1:331195204285:web:bbaa8e513c6a1d95f42dd4',
     messagingSenderId: '331195204285',
     projectId: 'outstanding-management-app',
@@ -57,7 +60,10 @@ class DefaultFirebaseOptions {
   );
 
   static const FirebaseOptions android = FirebaseOptions(
-    apiKey: 'AIzaSyDQ2EtQKAeNBLkuNUXmVgW_N475mrWHPiM',
+    apiKey: String.fromEnvironment(
+      'FIREBASE_ANDROID_API_KEY',
+      defaultValue: 'MISSING_API_KEY',
+    ),
     appId: '1:331195204285:android:1fc78f424be04584f42dd4',
     messagingSenderId: '331195204285',
     projectId: 'outstanding-management-app',
@@ -65,7 +71,10 @@ class DefaultFirebaseOptions {
   );
 
   static const FirebaseOptions ios = FirebaseOptions(
-    apiKey: 'AIzaSyDjNBU7SyqKPywPAG7Ki32tBdwI57Y9ID8',
+    apiKey: String.fromEnvironment(
+      'FIREBASE_IOS_API_KEY',
+      defaultValue: 'MISSING_API_KEY',
+    ),
     appId: '1:331195204285:ios:457f0ffb416055e3f42dd4',
     messagingSenderId: '331195204285',
     projectId: 'outstanding-management-app',
