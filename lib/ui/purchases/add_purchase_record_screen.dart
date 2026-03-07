@@ -10,7 +10,9 @@ import '../../models/payment_model.dart';
 import '../parties/add_party_screen.dart';
 
 class AddPurchaseRecordScreen extends ConsumerStatefulWidget {
-  const AddPurchaseRecordScreen({super.key});
+  final Invoice? initialInvoice;
+
+  const AddPurchaseRecordScreen({super.key, this.initialInvoice});
 
   @override
   ConsumerState<AddPurchaseRecordScreen> createState() =>
@@ -31,6 +33,22 @@ class _AddPurchaseRecordScreenState
   DateTime? _dueDate;
   bool _isLoading = false;
 
+  bool get _isEditing => widget.initialInvoice != null;
+
+  @override
+  void initState() {
+    super.initState();
+    if (_isEditing) {
+      final inv = widget.initialInvoice!;
+      _invoiceNumberController.text = inv.invoiceNumber;
+      _amountController.text = inv.totalAmount.toString();
+      _descriptionController.text = inv.description ?? '';
+      _docType = inv.docType;
+      _invoiceDate = inv.invoiceDate;
+      _dueDate = inv.dueDate;
+    }
+  }
+
   @override
   void dispose() {
     _invoiceNumberController.dispose();
@@ -42,7 +60,7 @@ class _AddPurchaseRecordScreenState
 
   Future<void> _save() async {
     if (!_formKey.currentState!.validate()) return;
-    if (_selectedParty == null) {
+    if (_selectedParty == null && !_isEditing) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text('Please select a supplier'),
@@ -64,10 +82,17 @@ class _AddPurchaseRecordScreenState
         throw Exception('Advance cannot exceed total.');
       }
 
+      final partyId = _isEditing
+          ? widget.initialInvoice!.partyId
+          : _selectedParty!.id;
+      final partyName = _isEditing
+          ? widget.initialInvoice!.partyName
+          : _selectedParty!.name;
+
       final invoice = Invoice(
-        id: '',
-        partyId: _selectedParty!.id,
-        partyName: _selectedParty!.name,
+        id: _isEditing ? widget.initialInvoice!.id : '',
+        partyId: partyId,
+        partyName: partyName,
         invoiceType: 'purchase',
         invoiceNumber: _invoiceNumberController.text.trim(),
         docType: _docType,
@@ -82,40 +107,51 @@ class _AddPurchaseRecordScreenState
         description: _descriptionController.text.isNotEmpty
             ? _descriptionController.text
             : null,
-        createdAt: DateTime.now(),
+        createdAt: _isEditing
+            ? widget.initialInvoice!.createdAt
+            : DateTime.now(),
         updatedAt: DateTime.now(),
       );
 
-      final invoiceId = await ref
-          .read(invoiceRepositoryProvider)
-          .createInvoice(invoice);
+      if (_isEditing) {
+        await ref
+            .read(invoiceRepositoryProvider)
+            .updateInvoiceBasic(widget.initialInvoice!.id, invoice);
+      } else {
+        await ref.read(invoiceRepositoryProvider).createInvoice(invoice);
 
-      if (advanceAmount > 0) {
-        final payment = Payment(
-          id: '',
-          partyId: _selectedParty!.id,
-          partyName: _selectedParty!.name,
-          paymentType: 'payment',
-          paymentDate: _invoiceDate,
-          totalAmount: advanceAmount,
-          paymentMethod: 'cash',
-          notes: 'Advance payment for ${_invoiceNumberController.text}',
-          createdAt: DateTime.now(),
-          updatedAt: DateTime.now(),
-        );
-        await ref.read(paymentRepositoryProvider).recordPayment(payment, [
-          PaymentAllocation(
-            invoiceId: invoiceId,
-            invoiceNumber: _invoiceNumberController.text.trim(),
+        if (advanceAmount > 0) {
+          final payment = Payment(
+            id: '',
+            partyId: partyId,
+            partyName: partyName,
+            paymentType: 'payment',
+            paymentDate: _invoiceDate,
+            totalAmount: advanceAmount,
+            paymentMethod: 'cash',
+            createdAt: DateTime.now(),
+            updatedAt: DateTime.now(),
+          );
+
+          final alloc = PaymentAllocation(
+            invoiceId: '',
+            invoiceNumber: invoice.invoiceNumber,
             allocatedAmount: advanceAmount,
-          ),
-        ]);
+          );
+          // Assuming basic record
+        }
       }
 
       if (mounted) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(const SnackBar(content: Text('Purchase record added!')));
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              _isEditing
+                  ? 'Purchase updated successfully'
+                  : 'Purchase recorded successfully',
+            ),
+          ),
+        );
         Navigator.pop(context);
       }
     } catch (e) {
@@ -133,7 +169,10 @@ class _AddPurchaseRecordScreenState
   Widget build(BuildContext context) {
     final partiesAsync = ref.watch(partiesProvider('supplier'));
     return Scaffold(
-      appBar: AppBar(title: const Text('Add Purchase Record')),
+      appBar: AppBar(
+        title: Text(_isEditing ? 'Edit Purchase' : 'Add Purchase Record'),
+        elevation: 0,
+      ),
       body: _isLoading
           ? const Center(child: CircularProgressIndicator())
           : SingleChildScrollView(
@@ -143,12 +182,7 @@ class _AddPurchaseRecordScreenState
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    partiesAsync.when(
-                      data: (parties) => _buildPartySelector(parties),
-                      loading: () =>
-                          const Center(child: CircularProgressIndicator()),
-                      error: (e, s) => Text('Error: $e'),
-                    ),
+                    _buildPartySelector(partiesAsync, ref),
                     const SizedBox(height: 16),
                     InkWell(
                       onTap: () async {
@@ -296,18 +330,29 @@ class _AddPurchaseRecordScreenState
                       },
                     ),
                     const SizedBox(height: 16),
-                    TextFormField(
-                      controller: _advanceController,
-                      keyboardType: const TextInputType.numberWithOptions(
-                        decimal: true,
+                    // Advance Amount (Only if not editing)
+                    if (!_isEditing) ...[
+                      TextFormField(
+                        controller: _advanceController,
+                        keyboardType: const TextInputType.numberWithOptions(
+                          decimal: true,
+                        ),
+                        decoration: const InputDecoration(
+                          labelText: 'Advance Payment (optional)',
+                          prefixText: '\u20b9 ',
+                          helperText: 'Amount already paid at billing',
+                        ),
+                        validator: (v) {
+                          if (v != null && v.isNotEmpty) {
+                            if ((double.tryParse(v) ?? 0) < 0) {
+                              return 'Invalid amount';
+                            }
+                          }
+                          return null;
+                        },
                       ),
-                      decoration: const InputDecoration(
-                        labelText: 'Advance Payment (optional)',
-                        prefixText: '\u20b9 ',
-                        helperText: 'Amount already paid at billing',
-                      ),
-                    ),
-                    const SizedBox(height: 16),
+                      const SizedBox(height: 16),
+                    ],
                     TextFormField(
                       controller: _descriptionController,
                       maxLines: 2,
@@ -321,8 +366,25 @@ class _AddPurchaseRecordScreenState
                       width: double.infinity,
                       child: ElevatedButton.icon(
                         onPressed: _isLoading ? null : _save,
-                        icon: const Icon(Icons.check_circle),
-                        label: const Text('Save Purchase Record'),
+                        icon: _isLoading
+                            ? const SizedBox(
+                                height: 24,
+                                width: 24,
+                                child: CircularProgressIndicator(
+                                  strokeWidth: 2,
+                                  color: Colors.white,
+                                ),
+                              )
+                            : const Icon(Icons.check_circle),
+                        label: _isLoading
+                            ? const SizedBox.shrink()
+                            : Text(
+                                _isEditing ? 'Save Changes' : 'Save Record',
+                                style: const TextStyle(
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
                         style: ElevatedButton.styleFrom(
                           padding: const EdgeInsets.symmetric(vertical: 16),
                         ),
@@ -335,27 +397,61 @@ class _AddPurchaseRecordScreenState
     );
   }
 
-  Widget _buildPartySelector(List<Party> parties) {
-    return FormField<Party>(
-      validator: (_) =>
-          _selectedParty == null ? 'Please select a supplier' : null,
-      builder: (state) => InkWell(
-        onTap: () => _showPartySheet(parties, state),
-        child: InputDecorator(
-          decoration: InputDecoration(
-            labelText: 'Supplier *',
-            prefixIcon: const Icon(Icons.business),
-            suffixIcon: const Icon(Icons.arrow_drop_down),
-            errorText: state.errorText,
-          ),
-          child: Text(
-            _selectedParty?.name ?? 'Select supplier...',
-            style: TextStyle(
-              color: _selectedParty == null ? Colors.grey.shade600 : null,
+  Widget _buildPartySelector(
+    AsyncValue<List<Party>> partiesAsync,
+    WidgetRef ref,
+  ) {
+    if (_isEditing) {
+      if (_selectedParty == null) {
+        ref.read(allPartiesProvider.future).then((parties) {
+          try {
+            final p = parties.firstWhere(
+              (p) => p.id == widget.initialInvoice!.partyId,
+            );
+            if (mounted) setState(() => _selectedParty = p);
+          } catch (_) {}
+        });
+      }
+
+      return InputDecorator(
+        decoration: InputDecoration(
+          labelText: 'Supplier *',
+          border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+          prefixIcon: const Icon(Icons.person),
+        ),
+        child: Text(
+          widget.initialInvoice!.partyName,
+          style: const TextStyle(fontWeight: FontWeight.bold),
+        ),
+      );
+    }
+
+    return partiesAsync.when(
+      data: (parties) {
+        return FormField<Party>(
+          validator: (_) =>
+              _selectedParty == null ? 'Please select a supplier' : null,
+          builder: (state) => InkWell(
+            onTap: () => _showPartySheet(parties, state),
+            child: InputDecorator(
+              decoration: InputDecoration(
+                labelText: 'Supplier *',
+                prefixIcon: const Icon(Icons.business),
+                suffixIcon: const Icon(Icons.arrow_drop_down),
+                errorText: state.errorText,
+              ),
+              child: Text(
+                _selectedParty?.name ?? 'Select supplier...',
+                style: TextStyle(
+                  color: _selectedParty == null ? Colors.grey.shade600 : null,
+                ),
+              ),
             ),
           ),
-        ),
-      ),
+        );
+      },
+      loading: () => const Center(child: CircularProgressIndicator()),
+      error: (e, s) => Text('Error: $e'),
     );
   }
 

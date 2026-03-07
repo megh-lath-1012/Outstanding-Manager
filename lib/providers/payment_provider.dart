@@ -104,6 +104,32 @@ class PaymentRepository {
     return docRef.id;
   }
 
+  /// Update an existing payment's basic non-financial details
+  Future<void> updatePaymentBasic(
+    String paymentId,
+    Payment updatedPayment,
+  ) async {
+    final userDoc = _userDoc;
+    if (userDoc == null) throw Exception('Not authenticated');
+
+    await _ref.read(firebaseFirestoreProvider).runTransaction((
+      transaction,
+    ) async {
+      final docRef = userDoc.collection('payments').doc(paymentId);
+      final snapshot = await transaction.get(docRef);
+      if (!snapshot.exists) throw Exception("Payment does not exist!");
+
+      // Only update non-amount, non-allocation details to prevent accounting errors
+      transaction.update(docRef, {
+        'paymentDate': Timestamp.fromDate(updatedPayment.paymentDate),
+        'paymentMethod': updatedPayment.paymentMethod,
+        'referenceNumber': updatedPayment.referenceNumber,
+        'notes': updatedPayment.notes,
+        'updatedAt': FieldValue.serverTimestamp(),
+      });
+    });
+  }
+
   Future<void> deletePayment(String paymentId) async {
     final userDoc = _userDoc;
     if (userDoc == null) throw Exception('Not authenticated');

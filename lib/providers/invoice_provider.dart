@@ -95,6 +95,50 @@ class InvoiceRepository {
     return docRef.id;
   }
 
+  /// Update an existing invoice (basic details)
+  Future<void> updateInvoiceBasic(
+    String invoiceId,
+    Invoice updatedInvoice,
+  ) async {
+    final userDoc = _userDoc;
+    if (userDoc == null) throw Exception('Not authenticated');
+
+    await _ref.read(firebaseFirestoreProvider).runTransaction((
+      transaction,
+    ) async {
+      final docRef = userDoc.collection('invoices').doc(invoiceId);
+      final snapshot = await transaction.get(docRef);
+      if (!snapshot.exists) throw Exception("Invoice does not exist!");
+
+      final oldInvoice = Invoice.fromFirestore(snapshot);
+      final paidAmount = oldInvoice.paidAmount;
+      final newOutstanding = updatedInvoice.totalAmount - paidAmount;
+
+      String newStatus = 'unpaid';
+      if (newOutstanding <= 0.01) {
+        newStatus = 'paid';
+      } else if (paidAmount > 0.01) {
+        newStatus = 'partial';
+      }
+
+      transaction.update(docRef, {
+        'partyId': updatedInvoice.partyId,
+        'partyName': updatedInvoice.partyName,
+        'invoiceNumber': updatedInvoice.invoiceNumber,
+        'docType': updatedInvoice.docType,
+        'invoiceDate': Timestamp.fromDate(updatedInvoice.invoiceDate),
+        'dueDate': updatedInvoice.dueDate != null
+            ? Timestamp.fromDate(updatedInvoice.dueDate!)
+            : null,
+        'totalAmount': updatedInvoice.totalAmount,
+        'outstandingAmount': newOutstanding < 0 ? 0.0 : newOutstanding,
+        'paymentStatus': newStatus,
+        'description': updatedInvoice.description,
+        'updatedAt': FieldValue.serverTimestamp(),
+      });
+    });
+  }
+
   /// Update invoice payment status after a payment allocation
   Future<void> updateInvoiceStatus(
     String invoiceId,

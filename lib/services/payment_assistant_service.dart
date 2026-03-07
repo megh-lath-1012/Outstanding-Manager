@@ -192,17 +192,22 @@ class PaymentAssistantService {
     Party party,
     double amount,
   ) async {
-    // Fetch unpaid/partial invoices
+    // Fetch invoices for this party
     final snapshot = await userDoc
         .collection('invoices')
         .where('partyId', isEqualTo: party.id)
-        .where('paymentStatus', whereIn: ['unpaid', 'partial'])
-        .orderBy('invoiceDate', descending: false) // oldest first
         .get();
 
+    // Filter for unpaid/partial and sort oldest first in memory
     final invoices = snapshot.docs
         .map((doc) => Invoice.fromFirestore(doc))
+        .where(
+          (inv) =>
+              inv.paymentStatus == 'unpaid' || inv.paymentStatus == 'partial',
+        )
         .toList();
+
+    invoices.sort((a, b) => a.invoiceDate.compareTo(b.invoiceDate));
 
     double remainingAmount = amount;
     List<PaymentAllocation> allocations = [];

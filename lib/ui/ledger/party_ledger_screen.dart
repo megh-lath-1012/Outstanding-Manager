@@ -4,7 +4,14 @@ import 'package:intl/intl.dart';
 import '../../providers/invoice_provider.dart';
 import '../../providers/payment_provider.dart';
 import '../../providers/party_provider.dart';
+import '../../providers/payment_provider.dart';
+import '../../providers/party_provider.dart';
 import '../../models/party_model.dart';
+import '../../models/invoice_model.dart';
+import '../../models/payment_model.dart';
+import '../sales/add_sales_record_screen.dart';
+import '../purchases/add_purchase_record_screen.dart';
+import '../payments/edit_payment_screen.dart';
 
 class PartyLedgerScreen extends ConsumerStatefulWidget {
   final String partyType; // 'customer' or 'supplier'
@@ -140,6 +147,7 @@ class _PartyLedgerScreenState extends ConsumerState<PartyLedgerScreen> {
                   widget.partyType ==
                   'customer', // Customer Invoice = Debit (They owe us)
               id: inv.id,
+              sourceObject: inv,
             ),
           );
         }
@@ -154,6 +162,7 @@ class _PartyLedgerScreenState extends ConsumerState<PartyLedgerScreen> {
                   widget.partyType !=
                   'customer', // Customer Payment = Credit (They paid us)
               id: p.id,
+              sourceObject: p,
             ),
           );
         }
@@ -186,56 +195,89 @@ class _PartyLedgerScreenState extends ConsumerState<PartyLedgerScreen> {
                 itemBuilder: (context, index) {
                   final row = rows[index];
                   final e = row.entry;
-                  return ListTile(
-                    dense: true,
-                    title: Row(
-                      children: [
-                        Text(
-                          DateFormat('dd/MM/yy').format(e.date),
-                          style: const TextStyle(
-                            fontSize: 12,
-                            color: Colors.grey,
+                  return InkWell(
+                    onTap: () {
+                      if (e.sourceObject is Invoice) {
+                        final inv = e.sourceObject as Invoice;
+                        if (inv.invoiceType == 'sales') {
+                          Navigator.of(context).push(
+                            MaterialPageRoute(
+                              builder: (_) =>
+                                  AddSalesRecordScreen(initialInvoice: inv),
+                            ),
+                          );
+                        } else {
+                          Navigator.of(context).push(
+                            MaterialPageRoute(
+                              builder: (_) =>
+                                  AddPurchaseRecordScreen(initialInvoice: inv),
+                            ),
+                          );
+                        }
+                      } else if (e.sourceObject is Payment) {
+                        final p = e.sourceObject as Payment;
+                        Navigator.of(context).push(
+                          MaterialPageRoute(
+                            builder: (_) => EditPaymentScreen(payment: p),
                           ),
-                        ),
-                        const SizedBox(width: 12),
-                        Expanded(
-                          child: Text(
-                            e.description,
-                            style: const TextStyle(fontWeight: FontWeight.w500),
-                          ),
-                        ),
-                      ],
-                    ),
-                    subtitle: Padding(
-                      padding: const EdgeInsets.only(top: 4),
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        );
+                      }
+                    },
+                    child: ListTile(
+                      dense: true,
+                      title: Row(
                         children: [
-                          Row(
-                            children: [
-                              if (e.isDebit)
-                                Text(
-                                  'DR: ${currencyFormat.format(e.amount)}',
-                                  style: const TextStyle(
-                                    color: Colors.red,
-                                    fontWeight: FontWeight.bold,
-                                  ),
-                                )
-                              else
-                                Text(
-                                  'CR: ${currencyFormat.format(e.amount)}',
-                                  style: const TextStyle(
-                                    color: Colors.green,
-                                    fontWeight: FontWeight.bold,
-                                  ),
-                                ),
-                            ],
-                          ),
                           Text(
-                            'BAL: ${currencyFormat.format(row.balance)}',
-                            style: const TextStyle(fontWeight: FontWeight.bold),
+                            DateFormat('dd/MM/yy').format(e.date),
+                            style: const TextStyle(
+                              fontSize: 12,
+                              color: Colors.grey,
+                            ),
+                          ),
+                          const SizedBox(width: 12),
+                          Expanded(
+                            child: Text(
+                              e.description,
+                              style: const TextStyle(
+                                fontWeight: FontWeight.w500,
+                              ),
+                            ),
                           ),
                         ],
+                      ),
+                      subtitle: Padding(
+                        padding: const EdgeInsets.only(top: 4),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Row(
+                              children: [
+                                if (e.isDebit)
+                                  Text(
+                                    'DR: ${currencyFormat.format(e.amount)}',
+                                    style: const TextStyle(
+                                      color: Colors.red,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  )
+                                else
+                                  Text(
+                                    'CR: ${currencyFormat.format(e.amount)}',
+                                    style: const TextStyle(
+                                      color: Colors.green,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                              ],
+                            ),
+                            Text(
+                              'BAL: ${currencyFormat.format(row.balance)}',
+                              style: const TextStyle(
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          ],
+                        ),
                       ),
                     ),
                   );
@@ -281,6 +323,7 @@ class _LedgerEntry {
   final double amount;
   final bool isDebit;
   final String id;
+  final dynamic sourceObject;
 
   _LedgerEntry({
     required this.date,
@@ -288,6 +331,7 @@ class _LedgerEntry {
     required this.amount,
     required this.isDebit,
     required this.id,
+    required this.sourceObject,
   });
 }
 
