@@ -31,7 +31,7 @@ exports.generateOverdueReminder = onCall({ secrets: [geminiApiKey] }, async (req
     }
 
     const genAI = new GoogleGenerativeAI(apiKey);
-    const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+    const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
 
     const prompt = `
 You are "Outstanding Management App", an automated collections agent for a small business. 
