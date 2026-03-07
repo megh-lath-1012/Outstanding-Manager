@@ -80,6 +80,7 @@ flutter:
 
   assets:
     - assets/icon/app_icon.png
+    - .env
 
 flutter_launcher_icons:
   android: "launcher_icon"
