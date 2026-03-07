@@ -16,22 +16,38 @@ class CashflowSummaryWidget extends ConsumerWidget {
     );
 
     return forecastAsync.when(
-      data: (forecast) => _buildSummary(context, forecast, currencyFormat),
-      loading: () => const Card(
-        child: Padding(
-          padding: EdgeInsets.all(20),
-          child: Center(child: CircularProgressIndicator()),
+      data: (forecast) {
+        if (forecast.totalUpcomingReceivables == 0 &&
+            forecast.totalUpcomingPayables == 0 &&
+            forecast.highRiskParties.isEmpty) {
+          return const SizedBox.shrink();
+        }
+        return Padding(
+          padding: const EdgeInsets.only(bottom: 24.0),
+          child: _buildSummary(context, forecast, currencyFormat),
+        );
+      },
+      loading: () => const Padding(
+        padding: EdgeInsets.only(bottom: 24.0),
+        child: Card(
+          child: Padding(
+            padding: EdgeInsets.all(20),
+            child: Center(child: CircularProgressIndicator()),
+          ),
         ),
       ),
-      error: (e, s) => Card(
-        child: Padding(
-          padding: const EdgeInsets.all(20),
-          child: Column(
-            children: [
-              const Icon(Icons.error_outline, color: Colors.red),
-              const SizedBox(height: 8),
-              Text('Forecast Error: $e', textAlign: TextAlign.center),
-            ],
+      error: (e, s) => Padding(
+        padding: const EdgeInsets.only(bottom: 24.0),
+        child: Card(
+          child: Padding(
+            padding: const EdgeInsets.all(20),
+            child: Column(
+              children: [
+                const Icon(Icons.error_outline, color: Colors.red),
+                const SizedBox(height: 8),
+                Text('Forecast Error: $e', textAlign: TextAlign.center),
+              ],
+            ),
           ),
         ),
       ),

@@ -44,7 +44,6 @@ class DashboardScreen extends ConsumerWidget {
 
               // Smart Forecasting
               const CashflowSummaryWidget(),
-              const SizedBox(height: 24),
 
               // Recent Activity
               Text(
