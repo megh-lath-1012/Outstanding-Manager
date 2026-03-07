@@ -158,4 +158,45 @@ class PaymentRepository {
     batch.delete(userDoc.collection('payments').doc(paymentId));
     await batch.commit();
   }
+
+  /// Fetch all payments allocated against a specific invoice
+  Future<List<Map<String, dynamic>>> getPaymentsForInvoice(
+    String invoiceId,
+    String partyId,
+  ) async {
+    final userDoc = _userDoc;
+    if (userDoc == null) throw Exception('Not authenticated');
+
+    // 1. Fetch all payments for this party to avoid collection group index requirement
+    final paymentsSnap = await userDoc
+        .collection('payments')
+        .where('partyId', isEqualTo: partyId)
+        .get();
+
+    List<Map<String, dynamic>> results = [];
+
+    // 2. For each payment, check its allocations subcollection
+    for (var doc in paymentsSnap.docs) {
+      final allocsSnap = await doc.reference
+          .collection('allocations')
+          .where('invoiceId', isEqualTo: invoiceId)
+          .get();
+
+      for (var allocDoc in allocsSnap.docs) {
+        results.add({
+          'payment': Payment.fromFirestore(doc),
+          'allocation': PaymentAllocation.fromMap(allocDoc.data(), allocDoc.id),
+        });
+      }
+    }
+
+    // Sort by most recent payment first
+    results.sort((a, b) {
+      final p1 = a['payment'] as Payment;
+      final p2 = b['payment'] as Payment;
+      return p2.paymentDate.compareTo(p1.paymentDate);
+    });
+
+    return results;
+  }
 }

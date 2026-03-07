@@ -232,17 +232,9 @@ class PaymentAssistantService {
       remainingAmount -= allocateToThis;
     }
 
-    if (allocations.isEmpty) {
-      throw Exception(
-        'No outstanding invoices found for ${party.name} to allocate this payment.',
-      );
-    }
-
-    if (remainingAmount > 0.01) {
-      throw Exception(
-        'Payment amount (\$amount) exceeds total outstanding balance for ${party.name}.',
-      );
-    }
+    // We do not throw exceptions for unallocated surplus or empty allocations.
+    // The remaining amount will simply be recorded as an unallocated advance payment
+    // which accurately reflects reality according to the business rules.
 
     return allocations;
   }

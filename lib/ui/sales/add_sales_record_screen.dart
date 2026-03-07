@@ -31,6 +31,7 @@ class _AddSalesRecordScreenState extends ConsumerState<AddSalesRecordScreen> {
   DateTime _invoiceDate = DateTime.now();
   DateTime? _dueDate;
   bool _isLoading = false;
+  Future<List<Map<String, dynamic>>>? _paymentsFuture;
 
   bool get _isEditing => widget.initialInvoice != null;
 
@@ -45,10 +46,13 @@ class _AddSalesRecordScreenState extends ConsumerState<AddSalesRecordScreen> {
       _docType = inv.docType;
       _invoiceDate = inv.invoiceDate;
       _dueDate = inv.dueDate;
-      // We don't pre-fill advance amount for edits because
-      // payment info is handled by the ledger/allocations now.
+      // Fetch payment allocations
+      _paymentsFuture = ref
+          .read(paymentRepositoryProvider)
+          .getPaymentsForInvoice(inv.id, inv.partyId);
     }
   }
+
   @override
   void dispose() {
     _invoiceNumberController.dispose();
@@ -361,7 +365,11 @@ class _AddSalesRecordScreenState extends ConsumerState<AddSalesRecordScreen> {
                         alignLabelWithHint: true,
                       ),
                     ),
-                    const SizedBox(height: 32),
+                    const SizedBox(height: 24),
+
+                    // Payment History
+                    if (_isEditing) _buildPaymentHistory(),
+                    if (_isEditing) const SizedBox(height: 24),
 
                     SizedBox(
                       width: double.infinity,
@@ -395,6 +403,72 @@ class _AddSalesRecordScreenState extends ConsumerState<AddSalesRecordScreen> {
                 ),
               ),
             ),
+    );
+  }
+
+  Widget _buildPaymentHistory() {
+    if (_paymentsFuture == null) return const SizedBox.shrink();
+
+    return FutureBuilder<List<Map<String, dynamic>>>(
+      future: _paymentsFuture,
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return const Center(child: CircularProgressIndicator());
+        }
+        if (snapshot.hasError) {
+          return Text(
+            'Error loading payments: ${snapshot.error}',
+            style: const TextStyle(color: Colors.red),
+          );
+        }
+
+        final payments = snapshot.data ?? [];
+        if (payments.isEmpty) {
+          return const SizedBox.shrink();
+        }
+
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Divider(),
+            const SizedBox(height: 8),
+            Text(
+              'PAYMENT HISTORY',
+              style: Theme.of(context).textTheme.labelLarge?.copyWith(
+                fontWeight: FontWeight.bold,
+                letterSpacing: 1,
+              ),
+            ),
+            const SizedBox(height: 12),
+            ...payments.map((p) {
+              final payment = p['payment'] as Payment;
+              final alloc = p['allocation'] as PaymentAllocation;
+
+              return ListTile(
+                contentPadding: EdgeInsets.zero,
+                leading: CircleAvatar(
+                  backgroundColor: Colors.green.withValues(alpha: 0.1),
+                  child: const Icon(Icons.check, color: Colors.green),
+                ),
+                title: Text(
+                  '\u20b9${alloc.allocatedAmount.toStringAsFixed(2)}',
+                  style: const TextStyle(fontWeight: FontWeight.bold),
+                ),
+                subtitle: Text(
+                  '${DateFormat('dd MMM yyyy').format(payment.paymentDate)} • ${payment.paymentMethod.replaceAll('_', ' ').toUpperCase()}',
+                ),
+                trailing: Text(
+                  payment.referenceNumber != null &&
+                          payment.referenceNumber!.isNotEmpty
+                      ? 'Ref #${payment.referenceNumber}'
+                      : '',
+                  style: TextStyle(color: Colors.grey.shade600, fontSize: 12),
+                ),
+              );
+            }),
+          ],
+        );
+      },
     );
   }
 
