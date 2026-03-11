@@ -16,11 +16,9 @@ class OCRService {
       // Convert image bytes to base64 for transfer
       final base64Image = base64Encode(imageBytes);
 
-      final result = await FirebaseFunctions.instanceFor(region: 'asia-south1')
-          .httpsCallable('parseInvoiceImage')
-          .call({
-            'image': base64Image,
-          });
+      final result = await FirebaseFunctions.instanceFor(
+        region: 'asia-south1',
+      ).httpsCallable('parseInvoiceImage').call({'image': base64Image});
 
       if (result.data == null) {
         throw Exception('Failed to get result from OCR service.');

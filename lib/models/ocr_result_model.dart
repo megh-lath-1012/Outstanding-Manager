@@ -17,17 +17,17 @@ class OcrResult {
     return OcrResult(
       partyName: map['partyName'] as String?,
       invoiceNumber: map['invoiceNumber'] as String?,
-      invoiceDate: map['invoiceDate'] != null 
-          ? DateTime.tryParse(map['invoiceDate'] as String) 
+      invoiceDate: map['invoiceDate'] != null
+          ? DateTime.tryParse(map['invoiceDate'] as String)
           : null,
       amount: (map['amount'] ?? 0).toDouble(),
       confidenceScore: map['confidenceScore'] as String?,
     );
   }
 
-  bool get isEmpty => 
-      partyName == null && 
-      invoiceNumber == null && 
-      invoiceDate == null && 
+  bool get isEmpty =>
+      partyName == null &&
+      invoiceNumber == null &&
+      invoiceDate == null &&
       (amount == null || amount == 0);
 }

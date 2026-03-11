@@ -186,7 +186,9 @@ class _AddSalesRecordScreenState extends ConsumerState<AddSalesRecordScreen> {
 
     try {
       final bytes = await image.readAsBytes();
-      final result = await ref.read(ocrServiceProvider).parseInvoiceImage(bytes);
+      final result = await ref
+          .read(ocrServiceProvider)
+          .parseInvoiceImage(bytes);
 
       if (result.isEmpty) {
         throw Exception('Could not extract any data from the invoice image.');
@@ -207,7 +209,9 @@ class _AddSalesRecordScreenState extends ConsumerState<AddSalesRecordScreen> {
         if (result.partyName != null) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: Text('Found party: ${result.partyName}. Please verify selection.'),
+              content: Text(
+                'Found party: ${result.partyName}. Please verify selection.',
+              ),
             ),
           );
         }
@@ -232,7 +236,8 @@ class _AddSalesRecordScreenState extends ConsumerState<AddSalesRecordScreen> {
         title: Text(_isEditing ? 'Edit Sale' : 'Add Sale Record'),
         elevation: 0,
         actions: [
-          if (!_isEditing && ref.read(configServiceProvider).isOcrScannerEnabled)
+          if (!_isEditing &&
+              ref.read(configServiceProvider).isOcrScannerEnabled)
             IconButton(
               icon: const Icon(Icons.document_scanner),
               tooltip: 'Scan Invoice',

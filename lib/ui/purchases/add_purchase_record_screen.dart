@@ -191,8 +191,9 @@ class _AddPurchaseRecordScreenState
 
     try {
       final bytes = await image.readAsBytes();
-      final result =
-          await ref.read(ocrServiceProvider).parseInvoiceImage(bytes);
+      final result = await ref
+          .read(ocrServiceProvider)
+          .parseInvoiceImage(bytes);
 
       if (result.isEmpty) {
         throw Exception('Could not extract any data from the invoice image.');
@@ -238,7 +239,8 @@ class _AddPurchaseRecordScreenState
         title: Text(_isEditing ? 'Edit Purchase' : 'Add Purchase Record'),
         elevation: 0,
         actions: [
-          if (!_isEditing && ref.read(configServiceProvider).isOcrScannerEnabled)
+          if (!_isEditing &&
+              ref.read(configServiceProvider).isOcrScannerEnabled)
             IconButton(
               icon: const Icon(Icons.document_scanner),
               tooltip: 'Scan Invoice',
