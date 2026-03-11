@@ -1,0 +1,273 @@
+# Outstanding Management App — Visual Design & Feature Reference
+
+> **Purpose**: Feed this entire document into an image generation AI (NotebookLM, Midjourney, etc.) to generate a **cover image**, **Play Store screenshots**, and **promotional graphics** that accurately represent the app.
+
+---
+
+## App Identity
+
+- **App Name**: Outstanding Manager
+- **Tagline**: "AI-Powered Business Outstanding Tracker"
+- **Target Users**: Small & medium business owners in India (textile traders, wholesale dealers, manufacturers)
+- **Platform**: Android & iOS (Flutter cross-platform)
+- **Visual Style**: Premium fintech aesthetic — clean, minimal, professional
+- **Category**: Business / Finance / Accounting
+
+---
+
+## Brand Colors (Exact Hex Values)
+
+| Role | Color | Hex Code | Usage |
+|------|-------|----------|-------|
+| **Primary** | Coral Red | `#FF385C` | Buttons, accents, active states, logo highlight |
+| **Primary Light** | Soft Pink | `#FF5A75` | Hover states, light accents |
+| **Primary Dark** | Deep Red | `#E31C5F` | Pressed states |
+| **Secondary** | Teal Green | `#00A699` | Success states, positive numbers, secondary actions |
+| **Warning** | Amber Orange | `#FFA726` | Partial payment badges, caution alerts |
+| **Info** | Blue | `#4A90E2` | Links, Pulse AI Assistant FAB |
+| **Background (Light)** | Off-White | `#F7F7F7` | Page background |
+| **Background (Dark)** | Pure Dark | `#121212` | Dark mode page background |
+| **Card (Light)** | White | `#FFFFFF` | Card surfaces |
+| **Card (Dark)** | Dark Grey | `#1E1E1E` | Dark mode card surfaces |
+| **Text Primary** | Charcoal | `#484848` | Headings, body text |
+| **Text Secondary** | Mid Grey | `#767676` | Subtitles, descriptions |
+
+---
+
+## Typography
+
+- **Font Family**: **Montserrat** (Google Fonts)
+- **Headings**: Montserrat SemiBold (600), 20px
+- **Body**: Montserrat Regular (400), 14px
+- **Captions**: Montserrat Regular, 12px, grey
+- **Financial Figures**: Montserrat Bold (700), 28px (for hero numbers)
+- **Currency Format**: Indian Rupees `₹` with Indian comma grouping (e.g., ₹1,25,000.00)
+
+---
+
+## Navigation Structure
+
+**Bottom Navigation Bar** with 4 tabs:
+1. 🏠 **Home** (Dashboard)
+2. 📈 **Sales** (Sales Outstanding invoices)
+3. 📉 **Purchases** (Purchase Outstanding invoices)
+4. ⚙️ **Settings** (Profile, Appearance, Legal, Account)
+
+---
+
+## Screen-by-Screen UI Description
+
+### SCREEN 1: Dashboard (Home)
+
+**Layout**: Single scrollable column with pull-to-refresh
+
+**Components from top to bottom**:
+
+1. **AppBar**: Title "Dashboard", transparent background, no elevation
+
+2. **Net Outstanding Hero Card** (full width):
+   - Background: Light green (`Colors.green.shade50`) if positive, light red (`Colors.red.shade50`) if negative
+   - Left side: Large trending icon (↑ green or ↓ red), 36px
+   - Right side: 
+     - Label: "Net Outstanding" (grey, 13px)
+     - Value: "₹3,45,000" (28px, bold, green or red)
+     - Subtitle: "You will receive this" or "You owe this" (12px, grey)
+
+3. **Two Metric Cards** (side by side, equal width):
+   - **Left Card — "Sales Outstanding"**: Green down-arrow icon, value in bold 16px
+   - **Right Card — "Purchase Outstanding"**: Red up-arrow icon, value in bold 16px
+   - Both tappable (navigates to respective tabs)
+
+4. **Smart Forecasting Section** (Cashflow Summary Widget):
+   - Card with AI-generated summary text
+   - Coverage percentage indicator
+   - High-risk party warnings (if any)
+   - Only shows when valid data is available
+
+5. **Recent Activity Feed**:
+   - Section header: "Recent Activity" (titleMedium, bold)
+   - List of up to 10 items, each showing:
+     - CircleAvatar with colored icon (green for sales/receipts, orange for purchases, red for payments)
+     - Title: "Sale: Vasant Traders" or "Received from: Mehta & Sons"
+     - Subtitle: "INV-001 • ₹50,000"
+     - Trailing: Date "05 Mar"
+
+6. **Floating Action Button** (bottom-right):
+   - Extended FAB with sparkle icon (✨)
+   - Label: "Pulse Assistant"
+   - Background: `Colors.blue.shade700`
+   - Text & icon: White
+   - Opens the AI chat bottom sheet
+
+### SCREEN 2: Pulse AI Assistant (Bottom Sheet)
+
+**Opens from**: FAB on Dashboard
+
+**Layout**: Modal bottom sheet with rounded top corners (20px radius)
+
+**Components**:
+- Chat-like interface
+- Text input field at bottom: "Try: Received 50k from Vasant"
+- AI processes natural language and shows parsed results:
+  - Type detected (Sale / Purchase / Payment)
+  - Party name matched
+  - Amount extracted
+  - Auto-allocated invoices
+- Confirm/Cancel buttons
+
+### SCREEN 3: Sales Outstanding
+
+**Layout**: Scrollable list with search, sort, and export
+
+**AppBar Actions**:
+- Search icon → reveals search TextField
+- Sort dropdown (Date, Amount, Party Name)
+- Export menu (PDF, Excel)
+
+**Body**:
+- List of invoice cards, each containing:
+  - Party name (bold, 16px)
+  - Invoice number and date
+  - Total amount and outstanding amount
+  - Payment status badge: 
+    - "Paid" — green chip
+    - "Partial" — amber/orange chip  
+    - "Unpaid" — red chip
+  - Action buttons on tap: View Ledger, Record Payment, Payment History, Send Reminder, Delete
+
+**FAB**: "+" button to add new Sales Record
+
+### SCREEN 4: Purchases Outstanding
+
+**Layout**: Mirror of Sales screen but for purchase invoices
+- Same card structure, search, sort, and export capabilities
+- No "Send Reminder" option (since these are bills TO pay, not to collect)
+
+### SCREEN 5: Add Sales/Purchase Record
+
+**Layout**: Form screen with fields:
+- Party name (autocomplete from existing parties)
+- Invoice number
+- Invoice date (date picker)
+- Due date (date picker)
+- Total amount
+- Notes (optional)
+- Save button (coral red, full width)
+
+### SCREEN 6: Record Payment
+
+**Layout**: Form screen with:
+- Party selector
+- Payment amount
+- Payment date
+- Payment method (Cash, Bank Transfer, UPI, Cheque)
+- Reference number (optional)
+- Auto-allocated invoices list (FIFO allocation shown)
+- Save button
+
+### SCREEN 7: Party Ledger
+
+**Layout**: Full transaction history for a single party
+- Header: Party name, type (Customer/Supplier), total balance
+- Timeline of all invoices and payments
+- Running balance calculation
+
+### SCREEN 8: Settings
+
+**Layout**: Grouped list
+
+- **User Card**: CircleAvatar with initial, company name, email
+- **GENERAL Section**:
+  - Profile Settings (edit business details)
+  - Appearance (theme toggle: Light/Dark/System)
+- **LEGAL Section**:
+  - Privacy Policy → opens browser
+  - Terms & Conditions → opens browser
+- **ACCOUNT Section**:
+  - Sign Out
+  - Delete Account (red, with confirmation dialog)
+- **Footer**: "Outstanding Manager v1.0.0"
+
+### SCREEN 9: Login / Register
+
+- Clean, minimal auth flow
+- Google Sign-In button
+- Email/password fields
+- App logo at top
+- Coral red primary action button
+
+---
+
+## Key Visual Features to Highlight
+
+### 1. Pulse AI Assistant (Hero Feature)
+- User types: "received 50k from vasant"
+- App instantly records a ₹50,000 receipt from "Vasant Traders"
+- Auto-allocates to oldest unpaid invoices
+- Show the chat-like bottom sheet interface, sparkle icon
+
+### 2. Smart Dashboard
+- Real-time financial overview
+- Color-coded net outstanding (green = net receivable, red = net payable)
+- Side-by-side sales vs purchase cards
+
+### 3. AI Collection Reminders
+- Overdue invoice selected → "Send Reminder" button
+- AI generates professional, tone-appropriate message
+- Friendly for 1-7 days late, firm for 15+ days
+
+### 4. Professional Exports
+- PDF reports with branded headers and totals
+- Excel spreadsheet exports
+- Share via WhatsApp, email, etc.
+
+### 5. Dark Mode
+- Full dark mode support
+- Dark grey cards (#1E1E1E) on pure black (#121212)
+- Same coral red accents pop against dark backgrounds
+
+---
+
+## Cover Image Prompt
+
+Generate a premium, modern cover image for "Outstanding Manager" that conveys:
+- A sleek Android phone (slightly angled, 3D perspective) showing the Dashboard screen
+- The dashboard displays: Net Outstanding ₹3,45,000 in green, Sales Outstanding ₹5,20,000, Purchase Outstanding ₹1,75,000
+- Coral red (#FF385C) and teal (#00A699) accent colors
+- The Pulse AI FAB is visible at the bottom right with a sparkle icon
+- Background: Smooth gradient from dark blue-grey to coral red, subtle geometric patterns
+- Text overlay: "Outstanding Manager" in Montserrat Bold, below it "AI-Powered Business Outstanding Tracker"
+- Professional, fintech aesthetic — think Razorpay or Cred's marketing style
+
+---
+
+## Play Store Screenshot Prompts
+
+### Screenshot 1: Dashboard Overview
+- Phone mockup showing Dashboard screen
+- Net outstanding hero card in green
+- Two metric cards below
+- Caption: "Track Your Business at a Glance"
+
+### Screenshot 2: Pulse AI Assistant
+- Phone showing the bottom sheet AI chat
+- User message: "received 50k from vasant"  
+- AI response showing parsed: Party: Vasant Traders, Amount: ₹50,000, Auto-allocated to 2 invoices
+- Caption: "Record Transactions with Natural Language"
+
+### Screenshot 3: Sales Outstanding List
+- Phone showing list of invoice cards with status badges
+- Mix of Paid (green), Partial (orange), Unpaid (red) badges
+- Search bar active with results
+- Caption: "Manage Every Invoice Effortlessly"
+
+### Screenshot 4: AI Collection Reminders
+- Phone showing a generated reminder message  
+- Professional tone, mentioning specific invoice number and amount
+- Share button visible
+- Caption: "AI-Powered Payment Follow-ups"
+
+### Screenshot 5: Dark Mode + Settings
+- Phone in dark mode showing the Settings screen
+- Dark cards with coral accents
+- Caption: "Beautiful in Light & Dark"
