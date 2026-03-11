@@ -2,7 +2,7 @@ import 'dart:convert';
 import 'dart:typed_data';
 import 'package:cloud_functions/cloud_functions.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../models/ocr_result_model.dart';
+import '../../models/ocr_result_model.dart';
 
 final ocrServiceProvider = Provider<OCRService>((ref) {
   return OCRService();
