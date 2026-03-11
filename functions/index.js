@@ -306,3 +306,60 @@ exports.analyzeCashflow = onCall({ secrets: [geminiApiKey] }, async (request) =>
         throw new HttpsError("internal", "Error analyzing cashflow data.");
     }
 });
+
+exports.parseInvoiceImage = onCall({ secrets: [geminiApiKey] }, async (request) => {
+    // Check auth
+    if (!request.auth) {
+        throw new HttpsError("unauthenticated", "The function must be called while authenticated.");
+    }
+
+    const { image } = request.data;
+    if (!image) {
+        throw new HttpsError("invalid-argument", "Missing image data.");
+    }
+
+    const apiKey = geminiApiKey.value();
+    const genAI = new GoogleGenerativeAI(apiKey);
+    const model = genAI.getGenerativeModel({
+        model: "gemini-2.0-flash", // Using 2.0 Flash as requested
+        generationConfig: { responseMimeType: "application/json" },
+    });
+
+    const instruction = `
+You are an expert financial document parser. Extract the following information from the provided invoice image and return strictly in JSON format.
+
+{
+  "partyName": "The business name (Customer/Supplier)",
+  "invoiceNumber": "The unique invoice or bill number",
+  "invoiceDate": "The date in ISO format (YYYY-MM-DD)",
+  "amount": The numeric total amount,
+  "confidenceScore": "A percentage (e.g., '95%')"
+}
+
+If any field is not clearly visible or identifiable, return null for that field. Do not make up information.
+`;
+
+    try {
+        const result = await model.generateContent([
+            instruction,
+            {
+                inlineData: {
+                    data: image,
+                    mimeType: "image/jpeg",
+                },
+            },
+        ]);
+
+        const response = await result.response;
+        const text = response.text();
+
+        if (!text) {
+            throw new HttpsError("internal", "Failed to parse invoice from image.");
+        }
+
+        return JSON.parse(text);
+    } catch (error) {
+        console.error("Gemini Vision OCR Error:", error);
+        throw new HttpsError("internal", "Error calling Gemini Vision API.");
+    }
+});

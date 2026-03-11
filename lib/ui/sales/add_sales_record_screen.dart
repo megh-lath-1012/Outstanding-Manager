@@ -7,7 +7,11 @@ import '../../providers/payment_provider.dart';
 import '../../models/invoice_model.dart';
 import '../../models/party_model.dart';
 import '../../models/payment_model.dart';
+import '../../models/ocr_result_model.dart';
+import '../../core/services/ocr_service.dart';
+import '../../core/services/config_service.dart';
 import '../parties/add_party_screen.dart';
+import 'package:image_picker/image_picker.dart';
 
 class AddSalesRecordScreen extends ConsumerStatefulWidget {
   final Invoice? initialInvoice;
@@ -147,6 +151,78 @@ class _AddSalesRecordScreenState extends ConsumerState<AddSalesRecordScreen> {
     }
   }
 
+  Future<void> _scanInvoice() async {
+    final config = ref.read(configServiceProvider);
+    if (!config.isOcrScannerEnabled) return;
+
+    final picker = ImagePicker();
+    final source = await showModalBottomSheet<ImageSource>(
+      context: context,
+      builder: (context) => SafeArea(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            ListTile(
+              leading: const Icon(Icons.camera_alt),
+              title: const Text('Take Photo'),
+              onTap: () => Navigator.pop(context, ImageSource.camera),
+            ),
+            ListTile(
+              leading: const Icon(Icons.photo_library),
+              title: const Text('Choose from Gallery'),
+              onTap: () => Navigator.pop(context, ImageSource.gallery),
+            ),
+          ],
+        ),
+      ),
+    );
+
+    if (source == null) return;
+
+    final image = await picker.pickImage(source: source, imageQuality: 80);
+    if (image == null) return;
+
+    setState(() => _isLoading = true);
+
+    try {
+      final bytes = await image.readAsBytes();
+      final result = await ref.read(ocrServiceProvider).parseInvoiceImage(bytes);
+
+      if (result.isEmpty) {
+        throw Exception('Could not extract any data from the invoice image.');
+      }
+
+      setState(() {
+        if (result.invoiceNumber != null) {
+          _invoiceNumberController.text = result.invoiceNumber!;
+        }
+        if (result.amount != null && result.amount! > 0) {
+          _amountController.text = result.amount!.toString();
+        }
+        if (result.invoiceDate != null) {
+          _invoiceDate = result.invoiceDate!;
+        }
+        // Party selection is tricky because we need to match names
+        // For now, we'll just show a snackbar if we found a name but no exact match
+        if (result.partyName != null) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('Found party: ${result.partyName}. Please verify selection.'),
+            ),
+          );
+        }
+      });
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('OCR Error: $e'), backgroundColor: Colors.red),
+        );
+      }
+    } finally {
+      if (mounted) setState(() => _isLoading = false);
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final partiesAsync = ref.watch(partiesProvider('customer'));
@@ -155,6 +231,14 @@ class _AddSalesRecordScreenState extends ConsumerState<AddSalesRecordScreen> {
       appBar: AppBar(
         title: Text(_isEditing ? 'Edit Sale' : 'Add Sale Record'),
         elevation: 0,
+        actions: [
+          if (!_isEditing && ref.read(configServiceProvider).isOcrScannerEnabled)
+            IconButton(
+              icon: const Icon(Icons.document_scanner),
+              tooltip: 'Scan Invoice',
+              onPressed: _isLoading ? null : _scanInvoice,
+            ),
+        ],
       ),
       body: _isLoading
           ? const Center(child: CircularProgressIndicator())
