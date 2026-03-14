@@ -1,9 +1,16 @@
 <div align="center">
-  <h1>Outstanding Management App 📊💰</h1>
-  <p>A premium, cross-platform Flutter application designed to help businesses track and manage outstanding sales and purchase records with ease, powered by Firebase and intelligent AI features.</p>
+  <img src="assets/readme/cover_image.png" alt="Outstanding Manager Cover" width="100%">
+  
+  <h1>Outstanding Manager 📊💰</h1>
+  <p><b>A premium, cross-platform Flutter application for intelligent business outstanding management.</b><br>
+  Powered by Firebase and Google Gemini AI for seamless transaction tracking, automated ledger allocation, and professional reporting.</p>
 
   [![Flutter CI](https://github.com/megh-lath-1012/Outstanding-Manager/actions/workflows/flutter.yml/badge.svg)](https://github.com/megh-lath-1012/Outstanding-Manager/actions/workflows/flutter.yml)
   [![Flutter Test](https://github.com/megh-lath-1012/Outstanding-Manager/actions/workflows/test.yml/badge.svg)](https://github.com/megh-lath-1012/Outstanding-Manager/actions/workflows/test.yml)
+
+  <p>
+    <code>flutter</code> <code>firebase</code> <code>google-gemini</code> <code>business-management</code> <code>ledger</code> <code>accounting-app</code> <code>cross-platform</code> <code>material-3</code> <code>ai-assistant</code>
+  </p>
 </div>
 
 ---
