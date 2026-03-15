@@ -45,16 +45,36 @@ jobs:
         run: |
           # Use GitHub run number as build number (always increases)
           BUILD_NUMBER=${{ github.run_number }}
-          # Extract current version name (e.g., 1.0.0)
-          VERSION_NAME=$(grep 'version:' pubspec.yaml | head -1 | sed 's/version: //' | sed 's/+.*//')
+          # Force version name to 1.0.X
+          VERSION_NAME="1.0.${BUILD_NUMBER}"
+          
           # Update pubspec.yaml with new version+build
           sed -i "s/version: .*/version: ${VERSION_NAME}+${BUILD_NUMBER}/" pubspec.yaml
+          
+          # Set env variables for subsequent steps
+          echo "VERSION_NAME=${VERSION_NAME}" >> $GITHUB_ENV
+          echo "BUILD_NUMBER=${BUILD_NUMBER}" >> $GITHUB_ENV
           echo "Building version: ${VERSION_NAME}+${BUILD_NUMBER}"
 
       - name: Build App Bundle & APK
         run: |
-          flutter build appbundle --release
-          flutter build apk --release
+          flutter build appbundle --release --build-name=${{ env.VERSION_NAME }} --build-number=${{ env.BUILD_NUMBER }}
+          flutter build apk --release --build-name=${{ env.VERSION_NAME }} --build-number=${{ env.BUILD_NUMBER }}
+
+      - name: Release Summary
+        run: |
+          echo "🚀 Preparing Release"
+          echo "-------------------"
+          echo "Version Name: ${{ env.VERSION_NAME }}"
+          echo "Version Code: ${{ env.BUILD_NUMBER }}"
+          echo "Package Name: ${{ secrets.PACKAGE_NAME }}"
+          echo "Target Track: Internal"
+          echo ""
+          echo "📝 Release Notes (Copy-paste to Play Console if needed):"
+          echo "--------------------------------------------------------"
+          cat distribution/whatsnew/whatsnew-en-US
+          echo ""
+          echo "--------------------------------------------------------"
 
       - name: Upload AAB Artifact
         uses: actions/upload-artifact@v4
