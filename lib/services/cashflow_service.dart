@@ -1,5 +1,6 @@
 import 'package:cloud_functions/cloud_functions.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../providers/auth_provider.dart';
 
 class HighRiskParty {
   final String partyId;
@@ -56,6 +57,17 @@ class CashflowForecast {
       summaryMessage: map['summaryMessage'] ?? '',
     );
   }
+
+  factory CashflowForecast.empty() {
+    return CashflowForecast(
+      totalUpcomingReceivables: 0,
+      totalUpcomingPayables: 0,
+      coveragePercent: 100,
+      dailyProjections: {},
+      highRiskParties: [],
+      summaryMessage: '',
+    );
+  }
 }
 
 final cashflowServiceProvider = Provider<CashflowService>((ref) {
@@ -63,6 +75,12 @@ final cashflowServiceProvider = Provider<CashflowService>((ref) {
 });
 
 final cashflowForecastProvider = FutureProvider<CashflowForecast>((ref) async {
+  final authState = ref.watch(authStateProvider);
+
+  if (authState.isLoading || authState.value == null) {
+    return CashflowForecast.empty();
+  }
+
   final service = ref.watch(cashflowServiceProvider);
   return service.getForecast();
 });
