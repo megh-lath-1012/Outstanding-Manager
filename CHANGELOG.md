@@ -1,5 +1,14 @@
 # Changelog
 
+## [Unreleased] - 2026-03-15
+
+### Changed
+- Updated app icon for both Android and iOS with a modern design featuring green bars on a navy background.
+- Regenerated all native app icon assets using `flutter_launcher_icons`.
+
+### Fixed
+- Resolved `GoException` by correcting redirect and navigation paths from `/dashboard` to `/home` in auth screens.
+
 ## [Unreleased] - 2026-03-14
 
 ### Added
