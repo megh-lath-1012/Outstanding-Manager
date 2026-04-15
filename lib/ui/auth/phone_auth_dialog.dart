@@ -40,13 +40,16 @@ class _PhoneAuthDialogState extends ConsumerState<PhoneAuthDialog> {
                 if (!mounted) return;
                 context.go('/home');
               } catch (e) {
-                if (context.mounted) _showError(e.toString());
+                if (context.mounted) {
+                  _showError(e.toString());
+                }
                 if (mounted) setState(() => _isLoading = false);
               }
             },
             verificationFailed: (FirebaseAuthException e) {
-              if (context.mounted)
+              if (context.mounted) {
                 _showError(e.message ?? 'Verification failed');
+              }
               if (mounted) setState(() => _isLoading = false);
             },
             codeSent: (String verificationId, int? resendToken) {
@@ -63,7 +66,9 @@ class _PhoneAuthDialogState extends ConsumerState<PhoneAuthDialog> {
             },
           );
     } catch (e) {
-      if (context.mounted) _showError(e.toString());
+      if (context.mounted) {
+        _showError(e.toString());
+      }
       if (mounted) setState(() => _isLoading = false);
     }
   }
@@ -81,7 +86,9 @@ class _PhoneAuthDialogState extends ConsumerState<PhoneAuthDialog> {
       if (!mounted) return;
       context.go('/home');
     } catch (e) {
-      if (context.mounted) _showError(e.toString());
+      if (context.mounted) {
+        _showError(e.toString());
+      }
       if (mounted) setState(() => _isLoading = false);
     }
   }
