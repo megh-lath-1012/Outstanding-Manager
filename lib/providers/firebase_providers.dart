@@ -32,11 +32,11 @@ final appUserProvider = StreamProvider<AppUser?>((ref) {
       .doc(user.uid)
       .snapshots()
       .map((snapshot) {
-    if (snapshot.exists) {
-      return AppUser.fromFirestore(snapshot);
-    }
-    return null;
-  });
+        if (snapshot.exists) {
+          return AppUser.fromFirestore(snapshot);
+        }
+        return null;
+      });
 });
 
 /// Returns the current user's doc reference: users/{uid}

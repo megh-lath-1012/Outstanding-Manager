@@ -134,7 +134,10 @@ class AuthRepository {
     );
   }
 
-  Future<UserCredential> signInWithSmsCode(String verificationId, String smsCode) async {
+  Future<UserCredential> signInWithSmsCode(
+    String verificationId,
+    String smsCode,
+  ) async {
     try {
       final credential = PhoneAuthProvider.credential(
         verificationId: verificationId,

@@ -187,14 +187,20 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                         onPressed: () async {
                           try {
                             setState(() => _isLoading = true);
-                            await ref.read(authRepositoryProvider).signInWithGoogle();
+                            await ref
+                                .read(authRepositoryProvider)
+                                .signInWithGoogle();
                             if (mounted) context.go('/home');
                           } catch (e) {
                             if (mounted) {
-                              ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-                                content: Text(e.toString()),
-                                backgroundColor: Theme.of(context).colorScheme.error,
-                              ));
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(
+                                  content: Text(e.toString()),
+                                  backgroundColor: Theme.of(
+                                    context,
+                                  ).colorScheme.error,
+                                ),
+                              );
                               setState(() => _isLoading = false);
                             }
                           }
@@ -202,7 +208,11 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                       ),
                       const SizedBox(width: 24),
                       SocialIconButton(
-                        icon: Icon(Icons.phone, size: 28, color: Theme.of(context).colorScheme.primary),
+                        icon: Icon(
+                          Icons.phone,
+                          size: 28,
+                          color: Theme.of(context).colorScheme.primary,
+                        ),
                         onPressed: () {
                           showDialog(
                             context: context,

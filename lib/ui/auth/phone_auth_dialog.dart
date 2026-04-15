@@ -28,36 +28,38 @@ class _PhoneAuthDialogState extends ConsumerState<PhoneAuthDialog> {
   Future<void> _verifyPhoneNumber() async {
     if (_phoneNumber.isEmpty) return;
     setState(() => _isLoading = true);
-    
+
     try {
-      await ref.read(authRepositoryProvider).verifyPhoneNumber(
-        phoneNumber: _phoneNumber,
-        verificationCompleted: (PhoneAuthCredential credential) async {
-          try {
-            await FirebaseAuth.instance.signInWithCredential(credential);
-            if (mounted) context.go('/home');
-          } catch (e) {
-            _showError(e.toString());
-            if (mounted) setState(() => _isLoading = false);
-          }
-        },
-        verificationFailed: (FirebaseAuthException e) {
-          _showError(e.message ?? 'Verification failed');
-          if (mounted) setState(() => _isLoading = false);
-        },
-        codeSent: (String verificationId, int? resendToken) {
-          if (mounted) {
-            setState(() {
+      await ref
+          .read(authRepositoryProvider)
+          .verifyPhoneNumber(
+            phoneNumber: _phoneNumber,
+            verificationCompleted: (PhoneAuthCredential credential) async {
+              try {
+                await FirebaseAuth.instance.signInWithCredential(credential);
+                if (mounted) context.go('/home');
+              } catch (e) {
+                _showError(e.toString());
+                if (mounted) setState(() => _isLoading = false);
+              }
+            },
+            verificationFailed: (FirebaseAuthException e) {
+              _showError(e.message ?? 'Verification failed');
+              if (mounted) setState(() => _isLoading = false);
+            },
+            codeSent: (String verificationId, int? resendToken) {
+              if (mounted) {
+                setState(() {
+                  _verificationId = verificationId;
+                  _codeSent = true;
+                  _isLoading = false;
+                });
+              }
+            },
+            codeAutoRetrievalTimeout: (String verificationId) {
               _verificationId = verificationId;
-              _codeSent = true;
-              _isLoading = false;
-            });
-          }
-        },
-        codeAutoRetrievalTimeout: (String verificationId) {
-          _verificationId = verificationId;
-        },
-      );
+            },
+          );
     } catch (e) {
       _showError(e.toString());
       if (mounted) setState(() => _isLoading = false);
@@ -67,11 +69,13 @@ class _PhoneAuthDialogState extends ConsumerState<PhoneAuthDialog> {
   Future<void> _submitOTP() async {
     final code = _otpController.text.trim();
     if (code.length != 6) return;
-    
+
     setState(() => _isLoading = true);
-    
+
     try {
-      await ref.read(authRepositoryProvider).signInWithSmsCode(_verificationId, code);
+      await ref
+          .read(authRepositoryProvider)
+          .signInWithSmsCode(_verificationId, code);
       if (mounted) context.go('/home');
     } catch (e) {
       _showError(e.toString());
@@ -81,10 +85,12 @@ class _PhoneAuthDialogState extends ConsumerState<PhoneAuthDialog> {
 
   void _showError(String message) {
     if (mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-        content: Text(message),
-        backgroundColor: Theme.of(context).colorScheme.error,
-      ));
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(message),
+          backgroundColor: Theme.of(context).colorScheme.error,
+        ),
+      );
     }
   }
 
@@ -112,7 +118,8 @@ class _PhoneAuthDialogState extends ConsumerState<PhoneAuthDialog> {
                     borderRadius: BorderRadius.circular(12),
                   ),
                 ),
-                initialCountryCode: 'IN', // Default per initial conversation logic
+                initialCountryCode:
+                    'IN', // Default per initial conversation logic
                 onChanged: (phone) {
                   _phoneNumber = phone.completeNumber;
                 },
@@ -120,9 +127,13 @@ class _PhoneAuthDialogState extends ConsumerState<PhoneAuthDialog> {
               const SizedBox(height: 16),
               ElevatedButton(
                 onPressed: _isLoading ? null : _verifyPhoneNumber,
-                child: _isLoading 
-                  ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2)) 
-                  : const Text('Send Code'),
+                child: _isLoading
+                    ? const SizedBox(
+                        width: 20,
+                        height: 20,
+                        child: CircularProgressIndicator(strokeWidth: 2),
+                      )
+                    : const Text('Send Code'),
               ),
             ] else ...[
               TextFormField(
@@ -139,9 +150,13 @@ class _PhoneAuthDialogState extends ConsumerState<PhoneAuthDialog> {
               const SizedBox(height: 16),
               ElevatedButton(
                 onPressed: _isLoading ? null : _submitOTP,
-                child: _isLoading 
-                  ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2)) 
-                  : const Text('Verify & Login'),
+                child: _isLoading
+                    ? const SizedBox(
+                        width: 20,
+                        height: 20,
+                        child: CircularProgressIndicator(strokeWidth: 2),
+                      )
+                    : const Text('Verify & Login'),
               ),
             ],
           ],
