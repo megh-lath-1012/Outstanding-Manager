@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../providers/auth_provider.dart';
+import 'phone_auth_dialog.dart';
+import 'widgets/social_icon_button.dart';
 
 class LoginScreen extends ConsumerStatefulWidget {
   const LoginScreen({super.key});
@@ -155,7 +157,62 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                           )
                         : const Text('Login'),
                   ),
-                  const SizedBox(height: 16),
+                  const SizedBox(height: 24),
+                  Row(
+                    children: [
+                      const Expanded(child: Divider()),
+                      Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 16),
+                        child: Text(
+                          'Or continue with',
+                          style: Theme.of(context).textTheme.bodySmall,
+                        ),
+                      ),
+                      const Expanded(child: Divider()),
+                    ],
+                  ),
+                  const SizedBox(height: 24),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      SocialIconButton(
+                        icon: Text(
+                          'G',
+                          style: TextStyle(
+                            fontSize: 24,
+                            fontWeight: FontWeight.bold,
+                            color: Theme.of(context).colorScheme.primary,
+                          ),
+                        ),
+                        onPressed: () async {
+                          try {
+                            setState(() => _isLoading = true);
+                            await ref.read(authRepositoryProvider).signInWithGoogle();
+                            if (mounted) context.go('/home');
+                          } catch (e) {
+                            if (mounted) {
+                              ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                                content: Text(e.toString()),
+                                backgroundColor: Theme.of(context).colorScheme.error,
+                              ));
+                              setState(() => _isLoading = false);
+                            }
+                          }
+                        },
+                      ),
+                      const SizedBox(width: 24),
+                      SocialIconButton(
+                        icon: Icon(Icons.phone, size: 28, color: Theme.of(context).colorScheme.primary),
+                        onPressed: () {
+                          showDialog(
+                            context: context,
+                            builder: (context) => const PhoneAuthDialog(),
+                          );
+                        },
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 32),
                   Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
