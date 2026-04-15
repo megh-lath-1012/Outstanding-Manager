@@ -5,28 +5,7 @@ import 'package:google_sign_in/google_sign_in.dart';
 import '../models/user_model.dart';
 import 'firebase_providers.dart';
 
-final authStateProvider = StreamProvider<User?>((ref) {
-  return ref.watch(firebaseAuthProvider).authStateChanges();
-});
-
-final appUserProvider = StreamProvider<AppUser?>((ref) {
-  final user = ref.watch(authStateProvider).value;
-  if (user == null) {
-    return Stream.value(null);
-  }
-
-  return ref
-      .watch(firebaseFirestoreProvider)
-      .collection('users')
-      .doc(user.uid)
-      .snapshots()
-      .map((snapshot) {
-        if (snapshot.exists) {
-          return AppUser.fromFirestore(snapshot);
-        }
-        return null;
-      });
-});
+export 'firebase_providers.dart' show authStateProvider, appUserProvider;
 
 final authRepositoryProvider = Provider<AuthRepository>((ref) {
   return AuthRepository(
