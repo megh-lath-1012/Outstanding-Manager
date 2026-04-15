@@ -45,7 +45,8 @@ class _PhoneAuthDialogState extends ConsumerState<PhoneAuthDialog> {
               }
             },
             verificationFailed: (FirebaseAuthException e) {
-              if (context.mounted) _showError(e.message ?? 'Verification failed');
+              if (context.mounted)
+                _showError(e.message ?? 'Verification failed');
               if (mounted) setState(() => _isLoading = false);
             },
             codeSent: (String verificationId, int? resendToken) {
