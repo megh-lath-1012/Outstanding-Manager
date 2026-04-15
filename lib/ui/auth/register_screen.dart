@@ -49,7 +49,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
             backgroundColor: Colors.green,
           ),
         );
-        context.go('/dashboard');
+        context.go('/home');
       }
     } catch (e) {
       if (mounted) {
