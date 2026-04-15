@@ -2,7 +2,6 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_sign_in/google_sign_in.dart';
-import '../models/user_model.dart';
 import 'firebase_providers.dart';
 
 export 'firebase_providers.dart' show authStateProvider, appUserProvider;

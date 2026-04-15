@@ -201,19 +201,19 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                           await ref
                               .read(authRepositoryProvider)
                               .signInWithGoogle();
-                          if (mounted) context.go('/home');
+                          if (!context.mounted) return;
+                          context.go('/home');
                         } catch (e) {
-                          if (mounted) {
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              SnackBar(
-                                content: Text(e.toString()),
-                                backgroundColor: Theme.of(
-                                  context,
-                                ).colorScheme.error,
-                              ),
-                            );
-                            setState(() => _isLoading = false);
-                          }
+                          if (!context.mounted) return;
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(
+                              content: Text(e.toString()),
+                              backgroundColor: Theme.of(
+                                context,
+                              ).colorScheme.error,
+                            ),
+                          );
+                          setState(() => _isLoading = false);
                         }
                       },
                     ),

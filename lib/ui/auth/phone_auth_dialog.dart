@@ -37,14 +37,15 @@ class _PhoneAuthDialogState extends ConsumerState<PhoneAuthDialog> {
             verificationCompleted: (PhoneAuthCredential credential) async {
               try {
                 await FirebaseAuth.instance.signInWithCredential(credential);
-                if (mounted) context.go('/home');
+                if (!mounted) return;
+                context.go('/home');
               } catch (e) {
-                _showError(e.toString());
+                if (context.mounted) _showError(e.toString());
                 if (mounted) setState(() => _isLoading = false);
               }
             },
             verificationFailed: (FirebaseAuthException e) {
-              _showError(e.message ?? 'Verification failed');
+              if (context.mounted) _showError(e.message ?? 'Verification failed');
               if (mounted) setState(() => _isLoading = false);
             },
             codeSent: (String verificationId, int? resendToken) {
@@ -61,7 +62,7 @@ class _PhoneAuthDialogState extends ConsumerState<PhoneAuthDialog> {
             },
           );
     } catch (e) {
-      _showError(e.toString());
+      if (context.mounted) _showError(e.toString());
       if (mounted) setState(() => _isLoading = false);
     }
   }
@@ -76,22 +77,22 @@ class _PhoneAuthDialogState extends ConsumerState<PhoneAuthDialog> {
       await ref
           .read(authRepositoryProvider)
           .signInWithSmsCode(_verificationId, code);
-      if (mounted) context.go('/home');
+      if (!mounted) return;
+      context.go('/home');
     } catch (e) {
-      _showError(e.toString());
+      if (context.mounted) _showError(e.toString());
       if (mounted) setState(() => _isLoading = false);
     }
   }
 
   void _showError(String message) {
-    if (mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(message),
-          backgroundColor: Theme.of(context).colorScheme.error,
-        ),
-      );
-    }
+    if (!mounted || !context.mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(message),
+        backgroundColor: Theme.of(context).colorScheme.error,
+      ),
+    );
   }
 
   @override
