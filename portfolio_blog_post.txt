@@ -1,0 +1,311 @@
+# How I Built an AI-Powered Financial Management App with Flutter, Firebase, and Gemini
+
+*A deep dive into the architecture, design patterns, and engineering decisions behind Outstanding Manager — a production-grade mobile app for tracking business receivables and payables.*
+
+---
+
+## The Problem
+
+Small and medium businesses in India track lakhs of outstanding invoices using pen-and-paper ledgers or fragile Excel sheets. Payment follow-ups are haphazard, cash-flow visibility is near-zero, and reconciling partial payments against dozens of invoices is a nightmare.
+
+I set out to build **Outstanding Manager** — an app that doesn't just digitize this process, but makes it *intelligent*.
+
+> **TL;DR**: I built a cross-platform Flutter app with Firebase, Riverpod state management, FIFO payment allocation, AI-powered natural language transaction entry, serverless cashflow forecasting, and a fully automated CI/CD pipeline — all while keeping the repository safely open-source.
+
+---
+
+## Architecture Overview
+
+```
+┌──────────────────────────────────────────────────────┐
+│                    Flutter Frontend                   │
+│  ┌────────────┐  ┌────────────┐  ┌────────────────┐ │
+│  │   Screens  │  │  Providers │  │    Services     │ │
+│  │  (15+ UI)  │◄─┤ (Riverpod) ├─►│ (AI + Export)  │ │
+│  └────────────┘  └─────┬──────┘  └───────┬────────┘ │
+│                        │                 │           │
+└────────────────────────┼─────────────────┼───────────┘
+                         │                 │
+              ┌──────────▼──────────┐   ┌──▼──────────────┐
+              │   Cloud Firestore   │   │ Cloud Functions  │
+              │  (Real-time Sync)   │   │  (Gemini 2.5)    │
+              └─────────────────────┘   └─────────────────┘
+```
+
+The app follows a clean **unidirectional data flow**: UI → Provider → Repository/Service → Firestore. Every piece of state is reactive and derived from Firestore streams, so the UI updates in real-time without any manual refresh logic.
+
+---
+
+## 1. Reactive State Management with Riverpod
+
+Instead of using simple `setState` or BLoC, I chose **Riverpod** for its compile-time safety and powerful provider composition.
+
+### The Dashboard Provider Pattern
+
+The dashboard needs to aggregate data from *four* independent Firestore streams (sales invoices, purchase invoices, receipts, and payments) into a single `DashboardMetrics` object. Here's how I composed them:
+
+```dart
+final dashboardMetricsProvider = Provider<AsyncValue<DashboardMetrics>>((ref) {
+  final salesAsync = ref.watch(invoicesProvider(InvoiceQuery(invoiceType: 'sales')));
+  final purchasesAsync = ref.watch(invoicesProvider(InvoiceQuery(invoiceType: 'purchase')));
+  final receiptsAsync = ref.watch(paymentsProvider(PaymentQuery(paymentType: 'receipt')));
+  final paymentsOutAsync = ref.watch(paymentsProvider(PaymentQuery(paymentType: 'payment')));
+
+  // Nested .when() chains to safely combine 4 async streams
+  return salesAsync.when(
+    data: (sales) => purchasesAsync.when(
+      data: (purchases) => receiptsAsync.when(
+        data: (receipts) => paymentsOutAsync.when(
+          data: (paymentsOut) {
+            // Compute aggregated metrics...
+            return AsyncValue.data(DashboardMetrics(...));
+          },
+          ...
+        ), ...
+      ), ...
+    ), ...
+  );
+});
+```
+
+**Why this matters**: Each of the four streams updates independently in real-time. Riverpod automatically recomputes the dashboard whenever *any* stream emits new data. Zero boilerplate, zero manual subscription management.
+
+---
+
+## 2. The FIFO Payment Allocation Engine
+
+This is the core business logic I'm most proud of. When a user records a payment, the system automatically allocates it across outstanding invoices using a **First-In, First-Out (FIFO)** strategy — the same algorithm used by professional accounting software.
+
+```dart
+Future<List<PaymentAllocation>> _allocatePayment(
+  DocumentReference userDoc, Party party, double amount,
+) async {
+  // Fetch all invoices for this party
+  final snapshot = await userDoc.collection('invoices')
+    .where('partyId', isEqualTo: party.id).get();
+
+  // Filter for unpaid/partial and sort oldest-first
+  final invoices = snapshot.docs
+    .map((doc) => Invoice.fromFirestore(doc))
+    .where((inv) => inv.paymentStatus == 'unpaid' || inv.paymentStatus == 'partial')
+    .toList();
+  invoices.sort((a, b) => a.invoiceDate.compareTo(b.invoiceDate));
+
+  double remainingAmount = amount;
+  List<PaymentAllocation> allocations = [];
+
+  for (var invoice in invoices) {
+    if (remainingAmount <= 0) break;
+    double allocateToThis = remainingAmount < invoice.outstandingAmount
+        ? remainingAmount : invoice.outstandingAmount;
+
+    allocations.add(PaymentAllocation(
+      invoiceId: invoice.id,
+      invoiceNumber: invoice.invoiceNumber,
+      allocatedAmount: allocateToThis,
+    ));
+    remainingAmount -= allocateToThis;
+  }
+  return allocations;
+}
+```
+
+**Key design decisions**:
+- **Surplus handling**: If ₹50,000 is paid but only ₹30,000 in invoices exist, the remaining ₹20,000 is recorded as an advance — matching real-world business behavior.
+- **Balance restoration**: Deleting a payment reverses all allocations and restores invoice balances automatically. This required careful Firestore batch writes to maintain atomicity.
+- **Status management**: Invoices automatically transition between `Unpaid → Partial → Paid` based on cumulative allocations.
+
+---
+
+## 3. AI-Powered Natural Language Entry (Pulse Assistant)
+
+Instead of navigating through 4 screens to record *"Received ₹50,000 from Vasant"*, the user types exactly that into a chat-like interface. Behind the scenes:
+
+```
+User Input: "received 50k from vasant"
+        │
+        ▼
+┌──────────────────────────┐
+│  Cloud Function (Node.js)│
+│  Gemini 2.5 Flash API    │
+│  "Aggressive Parsing"    │
+└────────────┬─────────────┘
+             │  { type: "payment", partyName: "vasant", amount: 50000 }
+             ▼
+┌──────────────────────────┐
+│  Party Intelligence      │
+│  Fuzzy name matching     │
+│  (exact → contains →     │
+│   startsWith fallback)   │
+└────────────┬─────────────┘
+             │  Party found: "Vasant Traders"
+             ▼
+┌──────────────────────────┐
+│  Silent FIFO Allocation  │
+│  Auto-allocate to oldest │
+│  unpaid invoices         │
+└────────────┬─────────────┘
+             │
+             ▼
+   ✅ Payment recorded with zero manual input
+```
+
+**The fuzzy matching strategy** uses a three-tier fallback:
+
+```dart
+// Tier 1: Exact match
+docs.firstWhere((doc) => doc['name'].toLowerCase() == input.toLowerCase());
+
+// Tier 2: Contains match
+docs.firstWhere((doc) => doc['name'].toLowerCase().contains(input.toLowerCase()));
+
+// Tier 3: Prefix match (first 3 characters)
+docs.firstWhere((doc) => doc['name'].toLowerCase()
+    .startsWith(input.toLowerCase().substring(0, min(3, input.length))));
+```
+
+This means *"vas"*, *"vasant"*, and *"Vasant Traders"* all resolve to the same party.
+
+---
+
+## 4. Smart Cashflow Forecasting
+
+A Cloud Function analyzes the user's entire invoice and payment history to generate:
+- **30-day receivables/payables projection**
+- **Coverage percentage** (how much of upcoming payables can be covered by expected receivables)
+- **High-risk party identification** (customers with consistently late payments)
+
+```dart
+class CashflowForecast {
+  final double totalUpcomingReceivables;
+  final double totalUpcomingPayables;
+  final int coveragePercent;
+  final List<HighRiskParty> highRiskParties;
+  final String summaryMessage;  // AI-generated natural language summary
+}
+```
+
+**The coverage metric** is particularly useful: if it's below 100%, the dashboard shows a warning that the business may face a cash shortfall — *before* it actually happens.
+
+---
+
+## 5. AI-Generated Collection Reminders
+
+When an invoice goes overdue, the app generates contextually appropriate reminder messages using Gemini:
+
+```dart
+String toneInstruction;
+if (daysLate <= 7) {
+  toneInstruction = "Tone: Friendly, polite, assuming they just forgot.";
+} else if (daysLate <= 15) {
+  toneInstruction = "Tone: Professional, direct, asking for an update.";
+} else {
+  toneInstruction = "Tone: Firm but professional. Clearly state the outstanding balance.";
+}
+```
+
+The tone escalates naturally based on how overdue the invoice is, mimicking how a professional collections team would operate. The generated message includes the specific invoice number, outstanding amount, and total party balance for maximum impact.
+
+---
+
+## 6. Firestore Data Architecture
+
+```
+users/{userId}/
+├── parties/          # Customers & Suppliers
+│   └── {partyId}     # name, type, contact, balance
+├── invoices/         # Sales & Purchase invoices
+│   └── {invoiceId}   # amounts, dates, payment status
+└── payments/         # Receipts & Payments
+    └── {paymentId}/
+        └── allocations/  # Which invoices this payment settles
+            └── {allocId}
+```
+
+**Security Rules** enforce complete data isolation:
+
+```javascript
+match /users/{userId}/{document=**} {
+  allow read, write: if request.auth != null && request.auth.uid == userId;
+}
+```
+
+Every user can only access their own `users/{uid}/*` subtree. Even if someone obtains a Firestore reference, they cannot read another user's data.
+
+---
+
+## 7. Security-First Open Source
+
+Making a Firebase-backed app *open source* while keeping API keys secure required a multi-layered approach:
+
+| Layer | Solution |
+|-------|----------|
+| **API Keys** | `flutter_dotenv` reads from a local `.env` file (gitignored) |
+| **Firebase Config** | `google-services.json` and `GoogleService-Info.plist` are gitignored |
+| **CI/CD Analysis** | GitHub Actions generates dummy `.env` files for `flutter analyze` |
+| **CI/CD Builds** | Production `.env` and Firebase configs are base64-decoded from GitHub Secrets |
+| **Firestore** | Security Rules enforce user-level data isolation |
+
+The repository is fully public, yet contains zero hardcoded secrets.
+
+---
+
+## 8. CI/CD Pipeline
+
+```yaml
+# Three specialized workflows:
+flutter.yml    → Format check + Static analysis (every push)
+test.yml       → Unit tests (every push)
+play_store.yml → Build AAB + APK with real secrets (main branch + manual)
+```
+
+The Play Store build workflow securely reconstructs all sensitive files at build time:
+
+```yaml
+- name: Create Production .env file
+  run: |
+    echo "FIREBASE_ANDROID_API_KEY=${{ secrets.ANDROID_KEY }}" > .env
+
+- name: Decode Firebase Configuration Files
+  run: |
+    echo "${{ secrets.GOOGLE_SERVICES_JSON_BASE64 }}" | base64 --decode > android/app/google-services.json
+
+- name: Build App Bundle & APK
+  run: |
+    flutter build appbundle --release
+    flutter build apk --release
+```
+
+---
+
+## Tech Stack Summary
+
+| Category | Technology |
+|----------|-----------|
+| Frontend | Flutter 3.x + Material 3 |
+| State Management | Riverpod (reactive, composable) |
+| Backend | Cloud Firestore (real-time NoSQL) |
+| Authentication | Firebase Auth (Google Sign-In) |
+| Serverless | Cloud Functions (Node.js) |
+| AI/ML | Google Gemini 2.5 Flash |
+| CI/CD | GitHub Actions (3 workflows) |
+| Documentation | MkDocs + Material Theme (GitHub Pages) |
+| Security | flutter_dotenv + GitHub Secrets + Firestore Rules |
+
+---
+
+## Key Engineering Skills Demonstrated
+
+1. **Clean Architecture** — Separation of UI, state, services, and data layers
+2. **Reactive Programming** — Real-time Firestore streams composed via Riverpod
+3. **Domain-Driven Design** — FIFO allocation engine models real accounting rules
+4. **AI Integration** — Natural language entry via Cloud Functions + Gemini API
+5. **Security Engineering** — Zero secrets in code, bank-grade Firestore rules
+6. **DevOps** — Automated CI/CD with secret injection and artifact management
+7. **Production Readiness** — Error handling, edge cases, and defensive programming throughout
+
+---
+
+*Outstanding Manager is open source and available on [GitHub](https://github.com/megh-lath-1012/Outstanding-Manager).*
+
+*Built with ❤️ using Flutter and Firebase.*
