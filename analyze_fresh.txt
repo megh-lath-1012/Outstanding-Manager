@@ -59,8 +59,9 @@ Got dependencies!
 Try `flutter pub outdated` for more information.
 Analyzing Outstanding Management App...                         
 
-  error • The class 'GoogleSignIn' doesn't have an unnamed constructor • lib/providers/auth_provider.dart:123:32 • new_with_undefined_constructor_default
-  error • The method 'signIn' isn't defined for the type 'GoogleSignIn' • lib/providers/auth_provider.dart:123:47 • undefined_method
+warning • Unused import: '../models/user_model.dart' • lib/providers/auth_provider.dart:5:8 • unused_import
+  error • The class 'gsi.GoogleSignIn' doesn't have an unnamed constructor • lib/providers/auth_provider.dart:102:32 • new_with_undefined_constructor_default
+  error • The method 'signIn' isn't defined for the type 'GoogleSignIn' • lib/providers/auth_provider.dart:102:51 • undefined_method
    info • Don't use 'BuildContext's across async gaps, guarded by an unrelated 'mounted' check • lib/ui/auth/login_screen.dart:191:42 • use_build_context_synchronously
    info • Don't use 'BuildContext's across async gaps, guarded by an unrelated 'mounted' check • lib/ui/auth/login_screen.dart:194:52 • use_build_context_synchronously
    info • Don't use 'BuildContext's across async gaps, guarded by an unrelated 'mounted' check • lib/ui/auth/login_screen.dart:196:59 • use_build_context_synchronously
@@ -68,4 +69,4 @@ Analyzing Outstanding Management App...
    info • Don't use 'BuildContext's across async gaps, guarded by an unrelated 'mounted' check • lib/ui/auth/register_screen.dart:205:50 • use_build_context_synchronously
    info • Don't use 'BuildContext's across async gaps, guarded by an unrelated 'mounted' check • lib/ui/auth/register_screen.dart:207:57 • use_build_context_synchronously
 
-8 issues found. (ran in 3.3s)
+9 issues found. (ran in 3.6s)

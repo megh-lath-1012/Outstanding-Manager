@@ -1,6 +1,11 @@
 # Changelog
 
-## [Unreleased] - 2026-03-15
+## [Unreleased] - 2026-04-15
+
+### Added
+- **Google and Phone Authentication**: Integrated Google Sign-In and Phone OTP verification in `AuthRepository` and auth screens.
+- Added new Phone Auth numeric entry dialog featuring an `intl_phone_field` country code picker.
+- Implemented `SocialIconButton` for a clean circular social button interface.
 
 ### Changed
 - Updated app icon for both Android and iOS with a modern design featuring green bars on a navy background.

@@ -1,31 +1,10 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../models/user_model.dart';
+import 'package:google_sign_in/google_sign_in.dart';
 import 'firebase_providers.dart';
 
-final authStateProvider = StreamProvider<User?>((ref) {
-  return ref.watch(firebaseAuthProvider).authStateChanges();
-});
-
-final appUserProvider = StreamProvider<AppUser?>((ref) {
-  final user = ref.watch(authStateProvider).value;
-  if (user == null) {
-    return Stream.value(null);
-  }
-
-  return ref
-      .watch(firebaseFirestoreProvider)
-      .collection('users')
-      .doc(user.uid)
-      .snapshots()
-      .map((snapshot) {
-        if (snapshot.exists) {
-          return AppUser.fromFirestore(snapshot);
-        }
-        return null;
-      });
-});
+export 'firebase_providers.dart' show authStateProvider, appUserProvider;
 
 final authRepositoryProvider = Provider<AuthRepository>((ref) {
   return AuthRepository(
@@ -41,6 +20,22 @@ class AuthRepository {
   AuthRepository(this._auth, this._firestore);
 
   User? get currentUser => _auth.currentUser;
+
+  Future<void> _ensureUserExists(User user) async {
+    final doc = await _firestore.collection('users').doc(user.uid).get();
+    if (!doc.exists) {
+      await _firestore.collection('users').doc(user.uid).set({
+        'email': user.email ?? '',
+        'phoneNumber': user.phoneNumber ?? '',
+        'displayName': user.displayName ?? 'New User',
+        'invoicePrefix': 'INV',
+        'currency': 'INR',
+        'themePreference': 'system',
+        'createdAt': FieldValue.serverTimestamp(),
+        'updatedAt': FieldValue.serverTimestamp(),
+      });
+    }
+  }
 
   Future<UserCredential> signInWithEmailPassword(
     String email,
@@ -98,6 +93,62 @@ class AuthRepository {
       throw Exception(e.message ?? 'An error occurred during registration.');
     } catch (e) {
       throw Exception('Failed to register: $e');
+    }
+  }
+
+  Future<UserCredential> signInWithGoogle() async {
+    try {
+      final googleUser = await GoogleSignIn().signIn();
+      if (googleUser == null) {
+        throw Exception('Google Auth was cancelled.');
+      }
+      final googleAuth = await googleUser.authentication;
+      final credential = GoogleAuthProvider.credential(
+        accessToken: googleAuth.accessToken,
+        idToken: googleAuth.idToken,
+      );
+      final userCredential = await _auth.signInWithCredential(credential);
+      if (userCredential.user != null) {
+        await _ensureUserExists(userCredential.user!);
+      }
+      return userCredential;
+    } catch (e) {
+      throw Exception('Failed to sign in with Google: $e');
+    }
+  }
+
+  Future<void> verifyPhoneNumber({
+    required String phoneNumber,
+    required Function(PhoneAuthCredential) verificationCompleted,
+    required Function(FirebaseAuthException) verificationFailed,
+    required Function(String, int?) codeSent,
+    required Function(String) codeAutoRetrievalTimeout,
+  }) async {
+    await _auth.verifyPhoneNumber(
+      phoneNumber: phoneNumber,
+      verificationCompleted: verificationCompleted,
+      verificationFailed: verificationFailed,
+      codeSent: codeSent,
+      codeAutoRetrievalTimeout: codeAutoRetrievalTimeout,
+    );
+  }
+
+  Future<UserCredential> signInWithSmsCode(
+    String verificationId,
+    String smsCode,
+  ) async {
+    try {
+      final credential = PhoneAuthProvider.credential(
+        verificationId: verificationId,
+        smsCode: smsCode,
+      );
+      final userCredential = await _auth.signInWithCredential(credential);
+      if (userCredential.user != null) {
+        await _ensureUserExists(userCredential.user!);
+      }
+      return userCredential;
+    } catch (e) {
+      throw Exception('Failed to sign in with Phone: $e');
     }
   }
 
