@@ -13,10 +13,16 @@ void main() async {
   await dotenv.load(fileName: ".env");
 
   try {
-    await Firebase.initializeApp(
-      options: DefaultFirebaseOptions.currentPlatform,
-    );
+    if (Firebase.apps.isEmpty) {
+      await Firebase.initializeApp(
+        options: DefaultFirebaseOptions.currentPlatform,
+      );
+    }
+  } catch (e) {
+    debugPrint("Firebase initialization failed: $e");
+  }
 
+  try {
     // Initialize App Check for development
     await FirebaseAppCheck.instance.activate(
       // ignore: deprecated_member_use
@@ -25,7 +31,7 @@ void main() async {
       appleProvider: AppleProvider.debug,
     );
   } catch (e) {
-    debugPrint("Firebase initialization failed: $e");
+    debugPrint("Firebase App Check activation failed: $e");
   }
 
   runApp(const ProviderScope(child: OutstandingApp()));
