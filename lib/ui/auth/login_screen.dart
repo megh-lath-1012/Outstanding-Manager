@@ -132,9 +132,15 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                               setDialogState(() => isSending = false);
                               ScaffoldMessenger.of(context).showSnackBar(
                                 SnackBar(
-                                  content: Text(e.toString().replaceAll('Exception:', '').trim()),
-                                  backgroundColor:
-                                      Theme.of(context).colorScheme.error,
+                                  content: Text(
+                                    e
+                                        .toString()
+                                        .replaceAll('Exception:', '')
+                                        .trim(),
+                                  ),
+                                  backgroundColor: Theme.of(
+                                    context,
+                                  ).colorScheme.error,
                                 ),
                               );
                             }
